@@ -443,6 +443,22 @@ Ha csak a blogig jutsz el, még mindig lehet, hogy ugyanazt az értelmezést olv
 
 Fontos állításnál érdemes lehet továbbmenni az eredeti kutatásig.
 
+## Red flag: amikor a forráslánc körbeér
+
+Néha a források követése közben nem jutunk el eredeti bizonyítékhoz, hanem visszaérünk oda, ahonnan elindultunk.
+
+Például:
+
+> A oldal állítja X-et → B oldalra hivatkozik → B oldal C-re hivatkozik → C oldal végül A-ra hivatkozik
+
+Első pillantásra úgy tűnhet, hogy több oldal is alátámasztja ugyanazt az állítást. Valójában azonban **egyik sem szolgáltat független alapot hozzá**: a hivatkozások csak körbe-körbe mutatnak.
+
+Ennek kevésbé látványos változata is előfordulhat. Egy oldal közöl egy forrás nélküli állítást, más oldalak átveszik, később pedig újabb cikkek már ezekre a másodlagos oldalakra hivatkoznak. Idővel úgy tűnhet, mintha sok egymást megerősítő forrás létezne, miközben az eredeti bizonyíték nem található.
+
+A körkörös hivatkozás **red flag**, vagyis figyelmeztető jel. Nem bizonyítja, hogy maga az állítás hamis. Azt mutatja, hogy a megtalált hivatkozási lánc **nem ad független bizonyítékot az igazságára**.
+
+Ilyenkor érdemes más irányból is megpróbálni eredeti vagy független forrást találni.
+
 De nem kell mindig a lánc végéig menni.
 
 Ha egy megbízható szakmai szervezet közérthetően összefoglal egy bonyolult kutatási területet, sok hétköznapi kérdéshez ez teljesen megfelelő forrás lehet.
