@@ -333,7 +333,7 @@ akkor már előre meghatároztad, milyen irányú információt keresel.
 
 Lehet, hogy találni fogsz valamit, ami támogatja az elképzelésedet, miközben figyelmen kívül maradnak az ellenkező bizonyítékok.
 
-Ez nem csak LLM-probléma. Az emberek is hajlamosak könnyebben észrevenni azt, ami megerősíti a már meglévő véleményüket.
+Ez nem csak LLM-probléma. Az emberek is hajlamosak könnyebben keresni, észrevenni vagy nagyobb súllyal kezelni azokat az információkat, amelyek megerősítik azt, amit már eleve gondolnak. Ezt a hajlamot **megerősítési torzításnak** nevezzük.
 
 Jobb lehet például:
 
