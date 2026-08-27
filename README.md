@@ -30,3 +30,4 @@ A későbbiekben a tananyag adaptívvá tehető: egy diagnosztikai feladat alapj
 - [5. modul – Források és ellenőrzés](modules/05-forrasok-es-ellenorzes.md)
 - [6. modul – Aktuális információk és webhasználat](modules/06-aktualis-informaciok-es-web.md)
 - [7. modul – Kockázatos témák](modules/07-kockazatos-temak.md)
+- [8. modul – Az LLM mint gondolkodási partner](modules/08-gondolkodasi-partner.md)
