@@ -1,5 +1,7 @@
 # Learn LLM
 
+> **Fejlesztés alatt:** a tananyag jelenleg aktívan készül és változik. A visszajelzéseket, javítási javaslatokat és egyéb hozzájárulásokat köszönettel fogadjuk.
+
 Gyakorlati tananyag nagy nyelvi modellek (LLM-ek) értő, hatékony és kritikus használatához.
 
 A cél nem „varázspromptok” megtanítása, hanem annak megértése, hogyan érdemes LLM-ekkel együtt dolgozni, mikor bízhatunk a válaszban, mikor kell ellenőrizni, és hogyan használhatjuk ezeket a rendszereket gondolkodási és munkatársként.
