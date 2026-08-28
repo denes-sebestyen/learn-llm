@@ -83,6 +83,18 @@ Ezt nevezzük **adatminimalizálásnak**: csak annyi adatot adj át, amennyi a f
 
 > **Amit az LLM-nek nem kell tudnia a feladat megoldásához, azt gyakran nem érdemes megadni neki.**
 
+## Az adatminimalizálás nem a kontextus megszüntetése
+
+A túl kevés információ ugyanúgy ronthatja a választ, mint egy rosszul megfogalmazott kérdés.
+
+Ha utazást tervezel, számíthatnak a preferenciáid. Ha egy műszaki hibát próbálsz több beszélgetésen keresztül feltárni, hasznos lehet az előzmény. Ha egy hosszabb projekten dolgozol az LLM-mel, sok ismétlést takaríthat meg, ha ismeri a korábbi döntéseket.
+
+Ilyenkor a kontextusnak **funkciója van**: jobb vagy relevánsabb választ tesz lehetővé.
+
+Az adatminimalizálás célja ezért nem az, hogy minden beszélgetést személytelen helyőrzőkre redukálj. Inkább azt érdemes mérlegelni, hogy egy információ mennyit javít a feladaton, és milyen kockázatot jelent a megosztása.
+
+> **A szükségtelen adatot csökkentsd, ne a hasznos kontextust.**
+
 ---
 
 # 4. Az anonimizálás nem mindig olyan egyszerű, mint a név törlése
@@ -223,6 +235,22 @@ Ez hasznos lehet: nem kell minden alkalommal újra elmondanod ugyanazt.
 Ugyanakkor fontos tudni, hogy az aktuális válaszhoz adott esetben **nem csak az éppen begépelt mondatod szolgáltathat kontextust**.
 
 Ez különösen akkor számít, ha ugyanazt az eszközt nagyon különböző célokra használod.
+
+## Sok apró adatból részletes kép állhat össze
+
+Egyetlen beszélgetésben megosztott részlet önmagában jelentéktelennek tűnhet. Hosszabb idő alatt azonban a különböző beszélgetésekben megadott információk együtt már sokkal részletesebb képet alkothatnak rólad, a munkádról vagy más emberekről.
+
+Ez nem feltétlenül baj: éppen ettől lehet hasznos a tartós kontextus és a személyre szabás. De a kockázatot sem mindig lehet egyetlen üzenet alapján megítélni.
+
+Érdemes időnként nemcsak azt megkérdezni:
+
+> Érzékeny ez az egy adat?
+
+hanem azt is:
+
+> Mit lehet megtudni ezekből az adatokból együtt?
+
+A hosszú távú kontextus tehát egyszerre lehet **érték és kitettség**.
 
 Érdemes megismerni az adott alkalmazásban:
 
@@ -438,15 +466,16 @@ Ez egyszerre gyakorolja az adatvédelmi gondolkodást és az 5–6. modulban tan
 # Mit vigyél magaddal ebből a modulból?
 
 1. **Az LLM-nek elküldött információ adatátadás.**
-2. **Csak annyi adatot adj meg, amennyi a feladathoz szükséges.**
+2. **Csak annyi adatot adj meg, amennyi a feladathoz szükséges – de ne vond meg azt a kontextust, amely érdemben javítja a segítséget.**
 3. **A név törlése önmagában nem feltétlenül anonimizál egy dokumentumot.**
 4. **Mások és a munkáltatód adatairól nem feltétlenül dönthetsz szabadon.**
 5. **Jelszót, tokent, API-kulcsot és más titkot ne másolj be.**
 6. **Az AI-szolgáltatások adatkezelése eltérhet és idővel változhat.**
-7. **A fájlok és képernyőképek több információt tartalmazhatnak, mint elsőre látszik.**
-8. **Az integrációk kényelme új hozzáféréseket és adatáramlást is jelenthet.**
-9. **Az LLM segíthet a kockázatok felismerésében, de nem ő ad engedélyt érzékeny adatok megosztására.**
-10. **Megosztás előtt kérdezd meg: mi az a legkevesebb adat, amellyel a feladat még megoldható?**
+7. **A hosszabb idő alatt megosztott apró adatok együtt sokkal részletesebb képet alkothatnak.**
+8. **A fájlok és képernyőképek több információt tartalmazhatnak, mint elsőre látszik.**
+9. **Az integrációk kényelme új hozzáféréseket és adatáramlást is jelenthet.**
+10. **Az LLM segíthet a kockázatok felismerésében, de nem ő ad engedélyt érzékeny adatok megosztására.**
+11. **Megosztás előtt kérdezd meg: mi az a legkevesebb adat, amellyel a feladat még jól megoldható?**
 
 ---
 
