@@ -99,6 +99,38 @@ Ugyanaz a dokumentum egészen más összefoglalót igényelhet egy jogász, egy 
 
 Ezért hosszabb vagy fontos dokumentumnál gyakran jobb először **célzott kérdéseket feltenni**, mint egyetlen általános összefoglalóra hagyatkozni.
 
+## A formai korlát a tartalmat is befolyásolhatja
+
+Elsőre pusztán formázási kérésnek tűnhet például:
+
+> Foglald össze legfeljebb 10 pontban.
+
+A tízpontos korlát azonban nemcsak a válasz kinézetét határozza meg. A modellnek azt is el kell döntenie, hogyan férjenek bele a fontos információk ebbe a keretbe.
+
+Ez vezethet ahhoz, hogy:
+
+- több kapcsolódó információ egy pontba kerül;
+- egyes részletek kimaradnak;
+- magasabb szintű, kevésbé részletes megfogalmazás születik;
+- a későbbi pontok sűrűbbé válhatnak, ha még több fontos információ maradt, mint amennyi pont rendelkezésre áll.
+
+A „legfeljebb 10 pont” tehát **nem garantálja, hogy a dokumentum tíz legfontosabb információja veszteség nélkül belefér**.
+
+Ha fontos a lefedettség, hasznos lehet két lépésre bontani a feladatot:
+
+> Először azonosítsd a dokumentum lényeges információit, majd csoportosítsd őket legfeljebb 10 témába. Ezek alapján készíts összefoglalót. Jelezd külön, ha a korlát miatt fontos részlet maradna ki.
+
+Ezzel nem valamilyen „jobb varázspromptot” adsz. Inkább egy jobb munkafolyamatot kérsz: a modell előbb gondolja át, **minek kell helyet kapnia**, és csak utána készítse el a korlátozott hosszúságú választ.
+
+Ugyanez az elv nem csak a pontok számára igaz. Az olyan kérések is befolyásolhatják a tartalmat, mint:
+
+- „egy bekezdésben”;
+- „100 szóban”;
+- „csak a három legfontosabbat”;
+- „csak igen vagy nem választ adj”.
+
+> **A kimeneti forma nem mindig független a tartalomtól.**
+
 ---
 
 # 4. Ne csak választ kérj – kérj helyet is
@@ -524,7 +556,7 @@ A „nézd meg ezt” helyett mondd el, mit keresel benne.
 
 **2. Az összefoglalás szükségszerűen kihagy információt.**
 
-Mondd meg, milyen célból olvasod az anyagot.
+Mondd meg, milyen célból olvasod az anyagot. A szigorú formai korlátok – például a pontok vagy szavak maximális száma – további tartalmi kompromisszumokat okozhatnak.
 
 **3. Fontos állításnál kérj ellenőrizhető forráshelyet.**
 
