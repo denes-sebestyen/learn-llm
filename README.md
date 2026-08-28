@@ -33,3 +33,7 @@ A későbbiekben a tananyag adaptívvá tehető: egy diagnosztikai feladat alapj
 - [8. modul – Az LLM mint gondolkodási partner](modules/08-gondolkodasi-partner.md)
 - [9. modul – Dokumentumok, képek és egyéb bemenetek](modules/09-dokumentumok-kepek-es-bemenetek.md)
 - [10. modul – Adatvédelem és józan ész](modules/10-adatvedelem-es-jozan-esz.md)
+
+## Konkrét alkalmazási példák
+
+- [ChatGPT – hogyan jelennek meg a tananyag fogalmai egy konkrét alkalmazásban?](chatgpt-peldak.md)
