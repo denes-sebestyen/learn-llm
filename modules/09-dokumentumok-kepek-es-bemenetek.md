@@ -202,7 +202,7 @@ Ha teljes dokumentumra vonatkozó feladatot adsz – például:
 
 > Keress meg minden olyan helyet, ahol a dokumentum adatmegőrzési időt említ.
 
-– akkor érdemes külön hangsúlyozni, hogy teljes körű keresést szeretnél, és az eredményt szükség esetén magad is ellenőrizni.
+– akkor érdemes külön hangsúlyozni, hogy teljes körű keresést szeretnél, és az eredményt szükség esetén magadnak is ellenőrizni.
 
 A „nem találtam” ugyanis nem mindig ugyanazt jelenti, mint hogy **nincs benne**.
 
