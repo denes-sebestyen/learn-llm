@@ -1,0 +1,20 @@
+{
+  "name": "learn-llm",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "sync-content": "node scripts/sync-content.mjs",
+    "dev": "npm run sync-content && astro dev",
+    "build": "npm run sync-content && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.41.0",
+    "astro": "^7.2.0",
+    "sharp": "^0.34.0"
+  }
+}

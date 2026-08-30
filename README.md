@@ -26,7 +26,7 @@ A későbbiekben a tananyag adaptívvá tehető: egy diagnosztikai feladat alapj
 - [1. modul – Mi az AI, mi az LLM, és mire jó?](modules/01-mi-az-llm.md)
 - [2. modul – Hogyan kérdezz úgy, hogy használható választ kapj?](modules/02-hogyan-kerdezz.md)
 - [3. modul – A beszélgetés fontosabb, mint a tökéletes prompt](modules/03-beszelgetes-es-iteracio.md)
-- [4. modul – Mikor hihetsz neki, és mikor ne?](modules/04-mikor-hihetsz-neki.md)
+- [4. modul – Mikor hihetsz neki, és mikor ne?](modules/04-mikor-higgy-neki.md)
 - [5. modul – Források és ellenőrzés](modules/05-forrasok-es-ellenorzes.md)
 - [6. modul – Aktuális információk és webhasználat](modules/06-aktualis-informaciok-es-web.md)
 - [7. modul – Kockázatos témák](modules/07-kockazatos-temak.md)
