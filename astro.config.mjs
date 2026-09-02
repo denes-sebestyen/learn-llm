@@ -17,7 +17,9 @@ export default defineConfig({
         { label: 'Kezdőlap', link: '/' },
         {
           label: 'Modulok',
-          autogenerate: { directory: 'modules' },
+		  items: [
+			{ autogenerate: { directory: 'modules' } },
+		  ],
         },
         { label: 'Konkrét példa: ChatGPT', link: '/chatgpt-peldak/' },
       ],
