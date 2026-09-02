@@ -6,9 +6,8 @@ export default defineConfig({
     starlight({
       title: 'learn-llm',
       description: 'Gyakorlati tananyag nagy nyelvi modellek tudatos használatához.',
-      defaultLocale: 'hu',
       locales: {
-        hu: { label: 'Magyar', lang: 'hu' },
+        root: { label: 'Magyar', lang: 'hu' },
       },
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/denes-sebestyen/learn-llm' },
@@ -17,9 +16,9 @@ export default defineConfig({
         { label: 'Kezdőlap', link: '/' },
         {
           label: 'Modulok',
-		  items: [
-			{ autogenerate: { directory: 'modules' } },
-		  ],
+          items: [
+            { autogenerate: { directory: 'modules' } },
+          ],
         },
         { label: 'Konkrét példa: ChatGPT', link: '/chatgpt-peldak/' },
       ],
