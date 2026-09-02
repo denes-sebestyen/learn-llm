@@ -14,7 +14,8 @@ function titleFromMarkdown(markdown, fallback) {
 function withFrontmatter(markdown, fallbackTitle) {
   if (markdown.startsWith('---\n')) return markdown;
   const title = titleFromMarkdown(markdown, fallbackTitle).replaceAll('"', '\\"');
-  return `---\ntitle: "${title}"\n---\n\n${markdown}`;
+  const content = markdown.replace(/^#\s+.+(?:\r?\n)+/, '');
+  return `---\ntitle: "${title}"\n---\n\n${content}`;
 }
 
 async function writeDoc(sourceUrl, targetUrl, fallbackTitle, transform = (value) => value) {
