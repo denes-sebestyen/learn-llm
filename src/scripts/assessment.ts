@@ -1,60 +1,197 @@
-type Scenario = { id: string; title: string; prompt: string; modules: number[] };
-type Turn = { id: number; role: 'user' | 'assistant'; content: string };
+type Scenario = {
+  id: string;
+  title: string;
+  prompt: string;
+  modules: number[];
+};
 
-const byId = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-const scenarios: Scenario[] = JSON.parse(byId<HTMLScriptElement>('scenario-data').textContent ?? '[]');
-const select = byId<HTMLSelectElement>('scenario-select');
-const title = byId('scenario-title');
-const prompt = byId('scenario-prompt');
-const moduleTags = byId('module-tags');
-const messages = byId('messages');
-const emptyState = byId('empty-state');
-const composer = byId<HTMLFormElement>('composer');
-const input = byId<HTMLTextAreaElement>('message-input');
-const resetButton = byId<HTMLButtonElement>('reset-button');
-const evaluateButton = byId<HTMLButtonElement>('evaluate-button');
-const turnCounter = byId('turn-counter');
-const dialog = byId<HTMLDialogElement>('evaluation-dialog');
-const evaluationSummary = byId('evaluation-summary');
+type TurnRole = 'user' | 'assistant';
+
+type Turn = {
+  id: number;
+  role: TurnRole;
+  content: string;
+};
+
+const MOCK_ASSISTANT_REPLY =
+  'Ez most még csak frontend prototípus. A következő lépésben ezen a ponton érkezik majd a conversation model válasza, és a teljes transcript folytatható lesz.';
+
+function getElement<T extends HTMLElement>(id: string): T {
+  const element = document.getElementById(id);
+
+  if (!element) {
+    throw new Error(`Missing required element: #${id}`);
+  }
+
+  return element as T;
+}
+
+function readScenarios(): Scenario[] {
+  const scenarioData = getElement<HTMLScriptElement>('scenario-data');
+  return JSON.parse(scenarioData.textContent ?? '[]') as Scenario[];
+}
+
+const scenarios = readScenarios();
+
+const elements = {
+  scenarioSelect: getElement<HTMLSelectElement>('scenario-select'),
+  scenarioTitle: getElement<HTMLElement>('scenario-title'),
+  scenarioPrompt: getElement<HTMLElement>('scenario-prompt'),
+  moduleTags: getElement<HTMLElement>('module-tags'),
+  messages: getElement<HTMLElement>('messages'),
+  emptyState: getElement<HTMLElement>('empty-state'),
+  composer: getElement<HTMLFormElement>('composer'),
+  messageInput: getElement<HTMLTextAreaElement>('message-input'),
+  resetButton: getElement<HTMLButtonElement>('reset-button'),
+  evaluateButton: getElement<HTMLButtonElement>('evaluate-button'),
+  turnCounter: getElement<HTMLElement>('turn-counter'),
+  evaluationDialog: getElement<HTMLDialogElement>('evaluation-dialog'),
+  evaluationSummary: getElement<HTMLElement>('evaluation-summary'),
+  closeDialogButton: getElement<HTMLButtonElement>('close-dialog'),
+};
+
 let transcript: Turn[] = [];
 
-function currentScenario() { return scenarios.find((scenario) => scenario.id === select.value) ?? scenarios[0]; }
-function renderScenario() {
-  const scenario = currentScenario();
-  title.textContent = scenario.title;
-  prompt.textContent = scenario.prompt;
-  moduleTags.replaceChildren(...scenario.modules.map((number) => {
-    const tag = document.createElement('span'); tag.className = 'tag'; tag.textContent = `${number}. modul`; return tag;
-  }));
+function getCurrentScenario(): Scenario {
+  const selectedScenario = scenarios.find(
+    (scenario) => scenario.id === elements.scenarioSelect.value,
+  );
+
+  return selectedScenario ?? scenarios[0];
 }
-function updateState() {
-  const turns = transcript.filter((turn) => turn.role === 'user').length;
-  turnCounter.textContent = `${turns} forduló`;
-  evaluateButton.disabled = turns === 0;
+
+function createModuleTag(moduleNumber: number): HTMLSpanElement {
+  const tag = document.createElement('span');
+  tag.className = 'tag';
+  tag.textContent = `${moduleNumber}. modul`;
+
+  return tag;
 }
-function addMessage(role: Turn['role'], content: string) {
-  if (emptyState.isConnected) emptyState.remove();
-  const element = document.createElement('div'); element.className = `message ${role}`;
-  const label = document.createElement('span'); label.className = 'message-label'; label.textContent = role === 'user' ? 'Te' : 'LLM';
-  const body = document.createElement('span'); body.textContent = content;
-  element.append(label, body); messages.append(element); messages.scrollTop = messages.scrollHeight;
+
+function renderScenario(): void {
+  const scenario = getCurrentScenario();
+  const moduleTags = scenario.modules.map(createModuleTag);
+
+  elements.scenarioTitle.textContent = scenario.title;
+  elements.scenarioPrompt.textContent = scenario.prompt;
+  elements.moduleTags.replaceChildren(...moduleTags);
 }
-function resetConversation() {
-  transcript = []; messages.replaceChildren(emptyState); input.value = ''; updateState();
+
+function getUserTurnCount(): number {
+  return transcript.filter((turn) => turn.role === 'user').length;
 }
-select.addEventListener('change', () => { renderScenario(); resetConversation(); });
-composer.addEventListener('submit', (event) => {
-  event.preventDefault(); const content = input.value.trim(); if (!content) return;
-  transcript.push({ id: transcript.length + 1, role: 'user', content }); addMessage('user', content); input.value = '';
-  const mockReply = 'Ez most még csak frontend prototípus. A következő lépésben ezen a ponton érkezik majd a conversation model válasza, és a teljes transcript folytatható lesz.';
-  transcript.push({ id: transcript.length + 1, role: 'assistant', content: mockReply }); addMessage('assistant', mockReply); updateState();
-});
-resetButton.addEventListener('click', resetConversation);
-evaluateButton.addEventListener('click', () => {
-  const userTurns = transcript.filter((turn) => turn.role === 'user').length;
-  evaluationSummary.textContent = `${transcript.length} üzenetből, ${userTurns} felhasználói fordulóból álló beszélgetés küldhető majd értékelésre.`;
-  dialog.showModal();
-});
-byId<HTMLButtonElement>('close-dialog').addEventListener('click', () => dialog.close());
-input.addEventListener('keydown', (event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); composer.requestSubmit(); } });
-renderScenario(); updateState();
+
+function updateConversationState(): void {
+  const userTurnCount = getUserTurnCount();
+
+  elements.turnCounter.textContent = `${userTurnCount} forduló`;
+  elements.evaluateButton.disabled = userTurnCount === 0;
+}
+
+function createMessageElement(role: TurnRole, content: string): HTMLDivElement {
+  const message = document.createElement('div');
+  message.className = `message ${role}`;
+
+  const label = document.createElement('span');
+  label.className = 'message-label';
+  label.textContent = role === 'user' ? 'Te' : 'LLM';
+
+  const body = document.createElement('span');
+  body.textContent = content;
+
+  message.append(label, body);
+
+  return message;
+}
+
+function renderMessage(role: TurnRole, content: string): void {
+  if (elements.emptyState.isConnected) {
+    elements.emptyState.remove();
+  }
+
+  const message = createMessageElement(role, content);
+  elements.messages.append(message);
+  elements.messages.scrollTop = elements.messages.scrollHeight;
+}
+
+function appendTurn(role: TurnRole, content: string): void {
+  transcript.push({
+    id: transcript.length + 1,
+    role,
+    content,
+  });
+
+  renderMessage(role, content);
+}
+
+function resetConversation(): void {
+  transcript = [];
+
+  elements.messages.replaceChildren(elements.emptyState);
+  elements.messageInput.value = '';
+
+  updateConversationState();
+}
+
+function submitUserMessage(): void {
+  const content = elements.messageInput.value.trim();
+
+  if (!content) {
+    return;
+  }
+
+  appendTurn('user', content);
+  elements.messageInput.value = '';
+
+  appendTurn('assistant', MOCK_ASSISTANT_REPLY);
+  updateConversationState();
+}
+
+function openEvaluationDialog(): void {
+  const userTurnCount = getUserTurnCount();
+
+  elements.evaluationSummary.textContent =
+    `${transcript.length} üzenetből, ${userTurnCount} felhasználói fordulóból álló ` +
+    'beszélgetés küldhető majd értékelésre.';
+
+  elements.evaluationDialog.showModal();
+}
+
+function handleComposerSubmit(event: SubmitEvent): void {
+  event.preventDefault();
+  submitUserMessage();
+}
+
+function handleMessageInputKeydown(event: KeyboardEvent): void {
+  const shouldSubmit = event.key === 'Enter' && !event.shiftKey;
+
+  if (!shouldSubmit) {
+    return;
+  }
+
+  event.preventDefault();
+  elements.composer.requestSubmit();
+}
+
+function bindEventListeners(): void {
+  elements.scenarioSelect.addEventListener('change', () => {
+    renderScenario();
+    resetConversation();
+  });
+
+  elements.composer.addEventListener('submit', handleComposerSubmit);
+  elements.resetButton.addEventListener('click', resetConversation);
+  elements.evaluateButton.addEventListener('click', openEvaluationDialog);
+  elements.closeDialogButton.addEventListener('click', () => {
+    elements.evaluationDialog.close();
+  });
+  elements.messageInput.addEventListener('keydown', handleMessageInputKeydown);
+}
+
+function initializeAssessment(): void {
+  renderScenario();
+  updateConversationState();
+  bindEventListeners();
+}
+
+initializeAssessment();
