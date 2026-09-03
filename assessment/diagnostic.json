@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "scale": {
+    "min": 0,
+    "max": 3,
+    "dimensions": [
+      "recognition",
+      "risk_assessment",
+      "verification_strategy",
+      "llm_usage_strategy"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "prompt-improvement",
+      "title": "Egy túl általános kérés",
+      "prompt": "Valaki ezt írja egy LLM-nek: „Írj nekem egy jó önéletrajzot.” Mit változtatnál a kérésen, mielőtt elküldenéd? Írd le vagy fogalmazd át úgy, ahogy szerinted jobb lenne.",
+      "modules": [2, 3],
+      "focus": ["recognition", "llm_usage_strategy"],
+      "evaluator_notes": [
+        "Értékelje, hogy a válasz kér-e vagy megad-e releváns kontextust, célt, közönséget és kívánt formátumot.",
+        "Ne várjon egyetlen mintapromptot; a jó stratégia fontosabb a konkrét megfogalmazásnál.",
+        "Plusz erősség, ha a tanuló iterációt vagy visszakérdezést is természetes lehetőségként kezeli."
+      ]
+    },
+    {
+      "id": "suspicious-answer",
+      "title": "Meggyőző válasz, bizonytalan alapokon",
+      "prompt": "Egy LLM részletes választ ad egy történelmi kérdésedre, három könyvet és két tanulmányt is megnevez forrásként. A válasz nagyon meggyőző, de egyik hivatkozást sem ismered. Mit teszel, mielőtt felhasználod az információt egy beadandóban?",
+      "modules": [1, 4, 5],
+      "focus": ["recognition", "verification_strategy"],
+      "evaluator_notes": [
+        "Erős válasz felismeri, hogy a magabiztos stílus és a konkrét hivatkozás önmagában nem bizonyíték.",
+        "Keresse a hivatkozások létezésének és a konkrét állítások forrástámogatásának ellenőrzését.",
+        "Ne követelje meg minden forrás ellenőrzését, ha a tanuló ésszerű, kockázatarányos mintavételt és ellenőrzési stratégiát ír le."
+      ]
+    },
+    {
+      "id": "current-information",
+      "title": "Holnap is igaz?",
+      "prompt": "Megkérdezed egy LLM-től, hogy holnap nyitva lesz-e egy konkrét üzlet. Azt válaszolja, hogy igen, 9:00–20:00 között. Hogyan döntöd el, hogy elindulhatsz-e erre az információra hagyatkozva?",
+      "modules": [5, 6],
+      "focus": ["recognition", "verification_strategy", "risk_assessment"],
+      "evaluator_notes": [
+        "A tanuló ismerje fel, hogy a nyitvatartás időben változó információ.",
+        "Erős stratégia friss, lehetőleg elsődleges vagy megbízható aktuális forrást használ.",
+        "A kockázatbecslés legyen arányos: egy közeli üzlet és egy hosszú utazás előtt szükséges ellenőrzés nem feltétlenül azonos."
+      ]
+    },
+    {
+      "id": "high-stakes-decision",
+      "title": "Határozott tanács nagy következménnyel",
+      "prompt": "Egy LLM egy egészségügyi vagy pénzügyi kérdésedre nagyon határozott ajánlást ad, és részletesen meg is indokolja. A döntésnek komoly következménye lehet. Hogyan használnád ezt a választ?",
+      "modules": [4, 5, 7],
+      "focus": ["risk_assessment", "verification_strategy", "llm_usage_strategy"],
+      "evaluator_notes": [
+        "Erős válasz az LLM-et előkészítésre, kérdések összegyűjtésére vagy alternatívák feltárására használhatja, de nem teszi kizárólagos döntéshozóvá.",
+        "Keresse a megfelelő szakember vagy hiteles elsődleges forrás bevonását.",
+        "A válasz ne kapjon automatikusan maximális pontot pusztán attól, hogy azt mondja: kérdezz szakembert; értékelje a teljes stratégiát."
+      ]
+    },
+    {
+      "id": "thinking-partner",
+      "title": "Nem csak választ kérünk",
+      "prompt": "Két reális lehetőség között kell döntened, és egyik sem egyértelműen jobb. Hogyan használnál egy LLM-et úgy, hogy segítsen átgondolni a döntést anélkül, hogy egyszerűen rábíznád a választást?",
+      "modules": [3, 8],
+      "focus": ["recognition", "llm_usage_strategy"],
+      "evaluator_notes": [
+        "Keresse az alternatívák, szempontok, feltételezések, ellenérvek vagy érintettek feltárását.",
+        "Erős válasz használhat premortemet, ellenkező álláspontot, összehasonlítási keretet vagy iterációt.",
+        "Ne részesítsen előnyben egyetlen technikát; a cél a gondolkodás kiszélesítése és strukturálása."
+      ]
+    },
+    {
+      "id": "sensitive-document",
+      "title": "Feltöltenéd ezt a dokumentumot?",
+      "prompt": "Van egy hosszú dokumentumod, amelyet szeretnél egy LLM-mel összefoglalni. A dokumentumban nevek, elérhetőségek és néhány olyan adat is szerepel, amely más emberekre vagy a munkahelyedre tartozik. Mit ellenőrzöl vagy teszel, mielőtt feltöltöd?",
+      "modules": [9, 10],
+      "focus": ["recognition", "risk_assessment", "llm_usage_strategy"],
+      "evaluator_notes": [
+        "Keresse a szükségtelen adatok eltávolítását vagy anonimizálását, valamint a szolgáltatás adatkezelésének és jogosultságoknak a mérlegelését.",
+        "Erős válasz különbséget tesz a feladathoz szükséges kontextus és a szükségtelen érzékeny adatok között.",
+        "A teljes dokumentum automatikus elutasítása nem feltétlenül jobb, mint egy tudatosan minimalizált, megfelelő szolgáltatásban végzett feldolgozás."
+      ]
+    }
+  ]
+}
