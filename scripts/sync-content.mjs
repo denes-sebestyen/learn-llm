@@ -54,7 +54,7 @@ await writeDoc(
 );
 
 await writeDoc(
-  new URL('../README.md', import.meta.url),
+  new URL('../index.md', import.meta.url),
   new URL('../src/content/docs/index.md', import.meta.url),
   'learn-llm',
   (markdown) => markdown
