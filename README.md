@@ -1,39 +1,58 @@
-# Learn LLM
+# learn-llm
 
-> **Fejlesztés alatt:** a tananyag jelenleg aktívan készül és változik. A visszajelzéseket, javítási javaslatokat és egyéb hozzájárulásokat köszönettel fogadjuk.
+An open-source course about using large language models effectively, critically, and responsibly.
 
-Gyakorlati tananyag nagy nyelvi modellek (LLM-ek) értő, hatékony és kritikus használatához.
+Rather than teaching collections of "perfect prompts" or prompt-engineering tricks, **learn-llm** focuses on practical LLM literacy: understanding what these systems are good at, recognizing their limitations, verifying their claims, and learning how to work with them as interactive tools and thinking partners.
 
-A cél nem „varázspromptok” megtanítása, hanem annak megértése, hogyan érdemes LLM-ekkel együtt dolgozni, mikor bízhatunk a válaszban, mikor kell ellenőrizni, és hogyan használhatjuk ezeket a rendszereket gondolkodási és munkatársként.
+> **Status:** The project is under active development. The course itself is currently written in Hungarian.
 
-## Tervezett modulok
+## What the course covers
 
-1. **Mi az AI, mi az LLM, és mire jó?** — Alapvető mentális modell; AI és LLM különbsége; kereső, adatbázis és LLM; hallucináció; tipikus erősségek és korlátok.
-2. **Hogyan kérdezz úgy, hogy használható választ kapj?** — Cél, kontextus, korlátok, közönség, kívánt forma; jó és rossz példák.
-3. **A beszélgetés fontosabb, mint a tökéletes prompt** — Iteráció, pontosítás, visszakérdezés, javítás, alternatívák és részfeladatokra bontás.
-4. **Mikor hihetsz neki, és mikor ne?** — Hallucináció, magabiztos tévedés, bizonytalanság és elavult információ.
-5. **Források és ellenőrzés** — Elsődleges és másodlagos források, dátumok, független források, hivatkozások ellenőrzése.
-6. **Aktuális információk és webhasználat** — Mikor szükséges friss keresés; hírek, árak, nyitvatartás, menetrendek és más változó adatok.
-7. **Kockázatos témák** — Egészségügy, jog, pénzügy és biztonság; hogyan használható az LLM segítségként anélkül, hogy az egyetlen döntési alap lenne.
-8. **Az AI mint gondolkodási partner** — Ötletelés, ellenérvek, összehasonlítás, tervezés, hibakeresés és tanulás.
-9. **Dokumentumok, képek és egyéb bemenetek** — Feltöltött anyagok elemzése, összefoglalása és az eszközök korlátai.
-10. **Adatvédelem és józan ész** — Személyes adatok, jelszavak, ügyféladatok, egészségügyi és céges információk kezelése.
+The course currently consists of ten modules covering:
 
-A későbbiekben a tananyag adaptívvá tehető: egy diagnosztikai feladat alapján a tanuló nagyobb hangsúlyt kaphat azokból a modulokból, amelyekre ténylegesen szüksége van.
+- a practical mental model of AI and LLMs;
+- writing useful requests with appropriate context and constraints;
+- iterative conversation instead of relying on a single perfect prompt;
+- hallucinations, uncertainty, and overconfident mistakes;
+- source criticism and verification;
+- current information and web-assisted answers;
+- higher-risk domains such as health, law, finance, and safety;
+- using an LLM as a thinking partner rather than delegating judgment to it;
+- working with documents, images, and other inputs;
+- privacy, data minimization, and sensible handling of sensitive information.
 
-## Elkészült modulok
+The Hungarian course homepage and the individual modules are available in [`index.md`](index.md) and the [`modules`](modules/) directory.
 
-- [1. modul – Mi az AI, mi az LLM, és mire jó?](modules/01-mi-az-llm.md)
-- [2. modul – Hogyan kérdezz úgy, hogy használható választ kapj?](modules/02-hogyan-kerdezz.md)
-- [3. modul – A beszélgetés fontosabb, mint a tökéletes prompt](modules/03-beszelgetes-es-iteracio.md)
-- [4. modul – Mikor hihetsz neki, és mikor ne?](modules/04-mikor-higgy-neki.md)
-- [5. modul – Források és ellenőrzés](modules/05-forrasok-es-ellenorzes.md)
-- [6. modul – Aktuális információk és webhasználat](modules/06-aktualis-informaciok-es-web.md)
-- [7. modul – Kockázatos témák](modules/07-kockazatos-temak.md)
-- [8. modul – Az LLM mint gondolkodási partner](modules/08-gondolkodasi-partner.md)
-- [9. modul – Dokumentumok, képek és egyéb bemenetek](modules/09-dokumentumok-kepek-es-bemenetek.md)
-- [10. modul – Adatvédelem és józan ész](modules/10-adatvedelem-es-jozan-esz.md)
+## Adaptive assessment
 
-## Konkrét alkalmazási példák
+The project is also experimenting with a more practical way to assess LLM literacy.
 
-- [ChatGPT – hogyan jelennek meg a tananyag fogalmai egy konkrét alkalmazásban?](chatgpt-peldak.md)
+Instead of only asking fixed quiz questions, the planned assessment system can generate realistic scenarios and let a learner conduct a multi-turn conversation with an LLM. A separate evaluator can then assess the observable interaction strategy — for example whether the learner notices uncertainty or contradictions, asks useful follow-up questions, verifies important claims, minimizes unnecessary sensitive data, and changes approach when something goes wrong.
+
+The intended architecture separates three roles:
+
+```text
+scenario generator → conversation model → evaluator
+```
+
+Static diagnostic scenarios remain useful as reproducible baselines and calibration cases, while dynamically generated conversations can test whether the same skills transfer to unfamiliar situations.
+
+The current assessment specifications live in [`assessment/`](assessment/).
+
+## Philosophy
+
+The central idea of the project is that effective LLM use is not primarily about memorizing special wording.
+
+Good LLM use involves judgment: knowing what context to provide, when to iterate, what to question, what to verify elsewhere, when consequences make independent verification especially important, and which decisions should remain with the human using the tool.
+
+## Website
+
+The course is published as an Astro/Starlight static site and deployed on Cloudflare Workers Static Assets.
+
+Current site: https://learn-llm.denes-sebestyen.workers.dev/
+
+## Contributing
+
+Feedback, corrections, examples, and other contributions are welcome. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the contribution workflow.
+
+Because both LLM products and good practices around them continue to evolve, the project treats the material as something that should be reviewed and improved over time.
