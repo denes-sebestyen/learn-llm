@@ -21,6 +21,7 @@ export default defineConfig({
           ],
         },
         { label: 'Konkrét példa: ChatGPT', link: '/chatgpt-peldak/' },
+        { label: 'Diagnosztika', link: '/assessment/' },
       ],
     }),
   ],
