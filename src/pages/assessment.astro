@@ -1,0 +1,317 @@
+---
+import diagnostic from '../../assessment/diagnostic.json';
+
+const scenarios = diagnostic.scenarios.map((scenario) => ({
+  id: scenario.id,
+  title: scenario.title,
+  prompt: scenario.prompt,
+  modules: scenario.modules,
+}));
+---
+
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Interaktív LLM-használati diagnosztika prototípus." />
+    <title>Diagnosztika – learn-llm</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --bg: #f6f7fb;
+        --panel: #ffffff;
+        --panel-soft: #eef1f7;
+        --text: #171923;
+        --muted: #667085;
+        --border: #d8dee9;
+        --accent: #5b4bdb;
+        --accent-strong: #4537bd;
+        --user: #ece9ff;
+        --assistant: #f2f4f7;
+        --success: #eaf7ee;
+        --shadow: 0 12px 32px rgb(15 23 42 / 0.08);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0d1117;
+          --panel: #151b23;
+          --panel-soft: #1c2430;
+          --text: #f0f3f7;
+          --muted: #a3adbd;
+          --border: #303947;
+          --accent: #a99cff;
+          --accent-strong: #c0b7ff;
+          --user: #2c2750;
+          --assistant: #202833;
+          --success: #173524;
+          --shadow: 0 12px 32px rgb(0 0 0 / 0.28);
+        }
+      }
+
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); min-height: 100vh; }
+      button, textarea, select { font: inherit; }
+      a { color: inherit; }
+
+      .page-shell { max-width: 1240px; margin: 0 auto; padding: 28px 20px 40px; }
+      .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+      .brand { display: flex; align-items: baseline; gap: 12px; }
+      .brand a { font-weight: 800; text-decoration: none; font-size: 1.15rem; }
+      .brand span { color: var(--muted); font-size: .92rem; }
+      .status { color: var(--muted); font-size: .85rem; border: 1px solid var(--border); border-radius: 999px; padding: 6px 10px; }
+
+      .intro { margin-bottom: 22px; max-width: 760px; }
+      .intro h1 { margin: 0 0 8px; font-size: clamp(1.8rem, 4vw, 2.5rem); }
+      .intro p { margin: 0; color: var(--muted); line-height: 1.6; }
+
+      .workspace { display: grid; grid-template-columns: minmax(250px, 320px) minmax(0, 1fr); gap: 18px; align-items: start; }
+      .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); }
+      .scenario-panel { padding: 18px; position: sticky; top: 18px; }
+      .scenario-panel h2, .conversation-header h2 { margin: 0; font-size: 1.05rem; }
+      .scenario-panel p { color: var(--muted); line-height: 1.5; font-size: .92rem; }
+      .scenario-panel select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel-soft); color: var(--text); }
+      .scenario-card { margin-top: 16px; padding: 14px; background: var(--panel-soft); border-radius: 12px; }
+      .scenario-title { font-weight: 700; margin-bottom: 8px; }
+      .scenario-prompt { line-height: 1.55; white-space: pre-wrap; }
+      .module-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+      .tag { font-size: .78rem; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 4px 8px; }
+      .helper { margin-top: 16px; font-size: .84rem; color: var(--muted); }
+
+      .conversation-panel { min-height: 680px; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+      .conversation-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .conversation-header p { margin: 4px 0 0; color: var(--muted); font-size: .88rem; }
+      .conversation-actions { display: flex; gap: 8px; }
+      .button { border: 1px solid var(--border); background: var(--panel-soft); color: var(--text); border-radius: 10px; padding: 9px 12px; cursor: pointer; }
+      .button:hover { border-color: var(--accent); }
+      .button.primary { background: var(--accent); border-color: var(--accent); color: white; }
+      .button.primary:hover { background: var(--accent-strong); }
+      .button:disabled { opacity: .5; cursor: not-allowed; }
+
+      .messages { padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; min-height: 420px; }
+      .empty-state { margin: auto; text-align: center; color: var(--muted); max-width: 500px; line-height: 1.6; }
+      .message { max-width: 84%; padding: 12px 14px; border-radius: 14px; line-height: 1.55; white-space: pre-wrap; }
+      .message.user { align-self: flex-end; background: var(--user); }
+      .message.assistant { align-self: flex-start; background: var(--assistant); }
+      .message-label { display: block; margin-bottom: 5px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+
+      .composer { border-top: 1px solid var(--border); padding: 14px; display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end; }
+      .composer textarea { resize: vertical; min-height: 52px; max-height: 180px; border-radius: 12px; border: 1px solid var(--border); background: var(--panel-soft); color: var(--text); padding: 12px; line-height: 1.45; }
+      .composer textarea:focus { outline: 2px solid color-mix(in srgb, var(--accent) 45%, transparent); border-color: var(--accent); }
+
+      dialog { width: min(620px, calc(100vw - 32px)); border: 1px solid var(--border); border-radius: 16px; background: var(--panel); color: var(--text); padding: 0; box-shadow: var(--shadow); }
+      dialog::backdrop { background: rgb(0 0 0 / .42); }
+      .dialog-content { padding: 20px; }
+      .dialog-content h2 { margin-top: 0; }
+      .dialog-content p { color: var(--muted); line-height: 1.55; }
+      .mock-result { background: var(--success); border-radius: 12px; padding: 14px; margin: 16px 0; }
+      .mock-result strong { display: block; margin-bottom: 5px; }
+      .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+      @media (max-width: 820px) {
+        .workspace { grid-template-columns: 1fr; }
+        .scenario-panel { position: static; }
+        .conversation-panel { min-height: 620px; }
+        .topbar { align-items: flex-start; }
+        .brand { flex-direction: column; gap: 3px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="topbar">
+        <div class="brand">
+          <a href="/">learn-llm</a>
+          <span>diagnosztikai prototípus</span>
+        </div>
+        <div class="status">Frontend-only · nincs LLM API</div>
+      </header>
+
+      <section class="intro">
+        <h1>Beszélgetés-alapú diagnosztika</h1>
+        <p>
+          Válassz egy helyzetet, majd válaszolj úgy, mintha ténylegesen egy LLM-mel dolgoznál. Ez a prototípus egyelőre csak a teljes beszélgetési felületet és transcriptet modellezi; a dinamikus modell és az evaluator később kerül mögé.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel scenario-panel">
+          <h2>Feladat</h2>
+          <p>A statikus diagnosztikai készletből választott scenario.</p>
+          <label>
+            <span class="message-label">Scenario</span>
+            <select id="scenario-select">
+              {scenarios.map((scenario, index) => (
+                <option value={scenario.id} selected={index === 0}>{scenario.title}</option>
+              ))}
+            </select>
+          </label>
+          <div class="scenario-card">
+            <div class="scenario-title" id="scenario-title"></div>
+            <div class="scenario-prompt" id="scenario-prompt"></div>
+            <div class="module-tags" id="module-tags"></div>
+          </div>
+          <div class="helper">
+            A modul-hozzárendelés most fejlesztői segítségként látszik. Egy valódi diagnosztikában ezt érdemes lehet elrejteni a felmérés végéig.
+          </div>
+        </aside>
+
+        <section class="panel conversation-panel">
+          <header class="conversation-header">
+            <div>
+              <h2>Beszélgetés</h2>
+              <p id="turn-counter">0 forduló</p>
+            </div>
+            <div class="conversation-actions">
+              <button class="button" type="button" id="reset-button">Újrakezdés</button>
+              <button class="button" type="button" id="evaluate-button" disabled>Kiértékelés</button>
+            </div>
+          </header>
+
+          <div class="messages" id="messages" aria-live="polite">
+            <div class="empty-state" id="empty-state">
+              Írd meg az első lépésedet vagy kérdésedet. A későbbi változatban innen indul majd a valódi többfordulós LLM-beszélgetés.
+            </div>
+          </div>
+
+          <form class="composer" id="composer">
+            <textarea id="message-input" placeholder="Mit írnál az LLM-nek?" required></textarea>
+            <button class="button primary" type="submit">Küldés</button>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="evaluation-dialog">
+      <div class="dialog-content">
+        <h2>Kiértékelés</h2>
+        <p>Az evaluator még nincs bekötve. Ez a nézet azt mutatja, milyen helyen jelenhet majd meg a bizonyíték-alapú visszajelzés.</p>
+        <div class="mock-result">
+          <strong>Transcript elkészült</strong>
+          <span id="evaluation-summary"></span>
+        </div>
+        <p>A következő implementációs lépésben a transcript strukturált formában elküldhető lesz az evaluator rétegnek, amely skill-pontokat, turn-hivatkozásokat és modulajánlást ad vissza.</p>
+        <div class="dialog-actions">
+          <button class="button primary" type="button" id="close-dialog">Rendben</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script type="application/json" id="scenario-data" set:html={JSON.stringify(scenarios)}></script>
+    <script>
+      const scenarios = JSON.parse(document.querySelector('#scenario-data').textContent);
+      const select = document.querySelector('#scenario-select');
+      const title = document.querySelector('#scenario-title');
+      const prompt = document.querySelector('#scenario-prompt');
+      const moduleTags = document.querySelector('#module-tags');
+      const messages = document.querySelector('#messages');
+      const emptyState = document.querySelector('#empty-state');
+      const composer = document.querySelector('#composer');
+      const input = document.querySelector('#message-input');
+      const resetButton = document.querySelector('#reset-button');
+      const evaluateButton = document.querySelector('#evaluate-button');
+      const turnCounter = document.querySelector('#turn-counter');
+      const dialog = document.querySelector('#evaluation-dialog');
+      const closeDialog = document.querySelector('#close-dialog');
+      const evaluationSummary = document.querySelector('#evaluation-summary');
+
+      let transcript = [];
+
+      function currentScenario() {
+        return scenarios.find((scenario) => scenario.id === select.value) ?? scenarios[0];
+      }
+
+      function renderScenario() {
+        const scenario = currentScenario();
+        title.textContent = scenario.title;
+        prompt.textContent = scenario.prompt;
+        moduleTags.replaceChildren(...scenario.modules.map((moduleNumber) => {
+          const tag = document.createElement('span');
+          tag.className = 'tag';
+          tag.textContent = `${moduleNumber}. modul`;
+          return tag;
+        }));
+      }
+
+      function updateState() {
+        const userTurns = transcript.filter((turn) => turn.role === 'user').length;
+        turnCounter.textContent = `${userTurns} ${userTurns === 1 ? 'forduló' : 'forduló'}`;
+        evaluateButton.disabled = userTurns === 0;
+      }
+
+      function addMessage(role, content) {
+        if (emptyState.isConnected) emptyState.remove();
+        const element = document.createElement('div');
+        element.className = `message ${role}`;
+
+        const label = document.createElement('span');
+        label.className = 'message-label';
+        label.textContent = role === 'user' ? 'Te' : 'LLM';
+
+        const body = document.createElement('span');
+        body.textContent = content;
+
+        element.append(label, body);
+        messages.append(element);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function resetConversation() {
+        transcript = [];
+        messages.replaceChildren(emptyState);
+        input.value = '';
+        updateState();
+      }
+
+      select.addEventListener('change', () => {
+        renderScenario();
+        resetConversation();
+      });
+
+      composer.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const content = input.value.trim();
+        if (!content) return;
+
+        transcript.push({
+          id: transcript.length + 1,
+          role: 'user',
+          content,
+        });
+        addMessage('user', content);
+        input.value = '';
+
+        const mockReply = 'Ez most még csak frontend prototípus. A következő lépésben ezen a ponton érkezik majd a conversation model válasza, és a teljes transcript folytatható lesz.';
+        transcript.push({
+          id: transcript.length + 1,
+          role: 'assistant',
+          content: mockReply,
+        });
+        addMessage('assistant', mockReply);
+        updateState();
+      });
+
+      resetButton.addEventListener('click', resetConversation);
+
+      evaluateButton.addEventListener('click', () => {
+        const userTurns = transcript.filter((turn) => turn.role === 'user').length;
+        evaluationSummary.textContent = `${transcript.length} üzenetből, ${userTurns} felhasználói fordulóból álló beszélgetés küldhető majd értékelésre.`;
+        dialog.showModal();
+      });
+
+      closeDialog.addEventListener('click', () => dialog.close());
+
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+          event.preventDefault();
+          composer.requestSubmit();
+        }
+      });
+
+      renderScenario();
+      updateState();
+    </script>
+  </body>
+</html>
