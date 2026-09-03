@@ -1,0 +1,151 @@
+---
+import diagnostic from '../../assessment/diagnostic.json';
+import '../styles/assessment.scss';
+
+const scenarios = diagnostic.scenarios.map(({ id, title, prompt, modules }) => ({
+  id,
+  title,
+  prompt,
+  modules,
+}));
+---
+
+<!doctype html>
+<html lang="hu">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta
+      name="description"
+      content="Interaktív LLM-használati diagnosztika prototípus."
+    />
+    <title>Diagnosztika – learn-llm</title>
+  </head>
+
+  <body>
+    <main class="page-shell">
+      <header class="topbar">
+        <div class="brand">
+          <a href="/">learn-llm</a>
+          <span>diagnosztikai prototípus</span>
+        </div>
+
+        <div class="status">Frontend-only · nincs LLM API</div>
+      </header>
+
+      <section class="intro">
+        <h1>Beszélgetés-alapú diagnosztika</h1>
+        <p>
+          Válassz egy helyzetet, majd válaszolj úgy, mintha ténylegesen egy
+          LLM-mel dolgoznál. Ez a prototípus egyelőre csak a beszélgetési
+          felületet és transcriptet modellezi.
+        </p>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel scenario-panel">
+          <h2>Feladat</h2>
+          <p>A statikus diagnosztikai készletből választott scenario.</p>
+
+          <label>
+            <span class="message-label">Scenario</span>
+            <select id="scenario-select">
+              {
+                scenarios.map((scenario, index) => (
+                  <option value={scenario.id} selected={index === 0}>
+                    {scenario.title}
+                  </option>
+                ))
+              }
+            </select>
+          </label>
+
+          <div class="scenario-card">
+            <div class="scenario-title" id="scenario-title"></div>
+            <div class="scenario-prompt" id="scenario-prompt"></div>
+            <div class="module-tags" id="module-tags"></div>
+          </div>
+
+          <div class="helper">
+            A modul-hozzárendelés most fejlesztői segítségként látszik. Egy
+            valódi diagnosztikában ezt érdemes lehet elrejteni a felmérés
+            végéig.
+          </div>
+        </aside>
+
+        <section class="panel conversation-panel">
+          <header class="conversation-header">
+            <div>
+              <h2>Beszélgetés</h2>
+              <p id="turn-counter">0 forduló</p>
+            </div>
+
+            <div class="conversation-actions">
+              <button class="button" type="button" id="reset-button">
+                Újrakezdés
+              </button>
+              <button
+                class="button"
+                type="button"
+                id="evaluate-button"
+                disabled
+              >
+                Kiértékelés
+              </button>
+            </div>
+          </header>
+
+          <div class="messages" id="messages" aria-live="polite">
+            <div class="empty-state" id="empty-state">
+              Írd meg az első lépésedet vagy kérdésedet. A későbbi változatban
+              innen indul majd a valódi többfordulós LLM-beszélgetés.
+            </div>
+          </div>
+
+          <form class="composer" id="composer">
+            <textarea
+              id="message-input"
+              placeholder="Mit írnál az LLM-nek?"
+              required
+            ></textarea>
+            <button class="button primary" type="submit">Küldés</button>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="evaluation-dialog">
+      <div class="dialog-content">
+        <h2>Kiértékelés</h2>
+        <p>
+          Az evaluator még nincs bekötve. Ez a nézet azt mutatja, hol jelenhet
+          majd meg a bizonyíték-alapú visszajelzés.
+        </p>
+
+        <div class="mock-result">
+          <strong>Transcript elkészült</strong>
+          <span id="evaluation-summary"></span>
+        </div>
+
+        <p>
+          A transcript később strukturált formában az evaluator réteghez
+          kerülhet, amely skill-pontokat, turn-hivatkozásokat és modulajánlást
+          ad vissza.
+        </p>
+
+        <div class="dialog-actions">
+          <button class="button primary" type="button" id="close-dialog">
+            Rendben
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <script
+      type="application/json"
+      id="scenario-data"
+      set:html={JSON.stringify(scenarios)}
+    ></script>
+    <script src="../scripts/assessment.ts"></script>
+  </body>
+</html>
