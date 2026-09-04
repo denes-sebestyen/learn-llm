@@ -8,7 +8,7 @@ export type WorkersAI = {
   run(model: string, input: unknown): Promise<unknown>;
 };
 
-const CONVERSATION_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+const CONVERSATION_MODEL = '@cf/meta/llama-3.1-8b-instruct-fast';
 
 export class CloudflareAIProvider implements ModelProvider {
   constructor(private readonly ai: WorkersAI) {}
