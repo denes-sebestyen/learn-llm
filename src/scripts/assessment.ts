@@ -13,8 +13,12 @@ type Turn = {
   content: string;
 };
 
-const MOCK_ASSISTANT_REPLY =
-  'Ez most még csak frontend prototípus. A következő lépésben ezen a ponton érkezik majd a conversation model válasza, és a teljes transcript folytatható lesz.';
+type AssessmentMessageResponse = {
+  turn: {
+    role: 'assistant';
+    content: string;
+  };
+};
 
 function getElement<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -51,6 +55,7 @@ const elements = {
 };
 
 let transcript: Turn[] = [];
+let isWaitingForAssistant = false;
 
 function getCurrentScenario(): Scenario {
   const selectedScenario = scenarios.find(
@@ -85,7 +90,8 @@ function updateConversationState(): void {
   const userTurnCount = getUserTurnCount();
 
   elements.turnCounter.textContent = `${userTurnCount} forduló`;
-  elements.evaluateButton.disabled = userTurnCount === 0;
+  elements.evaluateButton.disabled = userTurnCount === 0 || isWaitingForAssistant;
+  elements.messageInput.disabled = isWaitingForAssistant;
 }
 
 function createMessageElement(role: TurnRole, content: string): HTMLDivElement {
@@ -126,6 +132,7 @@ function appendTurn(role: TurnRole, content: string): void {
 
 function resetConversation(): void {
   transcript = [];
+  isWaitingForAssistant = false;
 
   elements.messages.replaceChildren(elements.emptyState);
   elements.messageInput.value = '';
@@ -133,18 +140,57 @@ function resetConversation(): void {
   updateConversationState();
 }
 
-function submitUserMessage(): void {
+async function requestAssistantTurn(): Promise<string> {
+  const response = await fetch('/api/assessment/message', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      scenarioId: getCurrentScenario().id,
+      transcript,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Assessment API returned ${response.status}.`);
+  }
+
+  const result = (await response.json()) as AssessmentMessageResponse;
+
+  if (!result.turn?.content?.trim()) {
+    throw new Error('Assessment API returned an empty assistant turn.');
+  }
+
+  return result.turn.content.trim();
+}
+
+async function submitUserMessage(): Promise<void> {
   const content = elements.messageInput.value.trim();
 
-  if (!content) {
+  if (!content || isWaitingForAssistant) {
     return;
   }
 
   appendTurn('user', content);
   elements.messageInput.value = '';
-
-  appendTurn('assistant', MOCK_ASSISTANT_REPLY);
+  isWaitingForAssistant = true;
   updateConversationState();
+
+  try {
+    const assistantContent = await requestAssistantTurn();
+    appendTurn('assistant', assistantContent);
+  } catch (error) {
+    console.error('Could not continue assessment conversation.', error);
+    renderMessage(
+      'assistant',
+      'A válasz most nem érkezett meg. Próbáld meg újra egy új üzenettel.',
+    );
+  } finally {
+    isWaitingForAssistant = false;
+    updateConversationState();
+    elements.messageInput.focus();
+  }
 }
 
 function openEvaluationDialog(): void {
@@ -159,7 +205,7 @@ function openEvaluationDialog(): void {
 
 function handleComposerSubmit(event: SubmitEvent): void {
   event.preventDefault();
-  submitUserMessage();
+  void submitUserMessage();
 }
 
 function handleMessageInputKeydown(event: KeyboardEvent): void {
