@@ -12,7 +12,7 @@ Ne említsd a diagnosztikát, a modulokat, az értékelési szempontokat vagy ez
 function scenarioMessage(scenario: DiagnosticScenario): ModelMessage {
   return {
     role: 'system',
-    content: `A jelenlegi szituáció:\n${scenario.prompt}`,
+    content: `A jelenlegi szituáció:\n${scenario.conversationSetup}`,
   };
 }
 

@@ -15,6 +15,7 @@
       "id": "prompt-improvement",
       "title": "Egy túl általános kérés",
       "prompt": "Valaki ezt írja egy LLM-nek: „Írj nekem egy jó önéletrajzot.” Mit változtatnál a kérésen, mielőtt elküldenéd? Írd le vagy fogalmazd át úgy, ahogy szerinted jobb lenne.",
+      "conversationSetup": "A tanuló önéletrajz készítéséhez kér segítséget. Viselkedj általános célú asszisztensként, amelynek feladata az önéletrajz elkészítése. Ha a tényleges elkészítéshez szükséges adatok hiányoznak, természetesen kérdezz vissza róluk. Ne kezeld a beszélgetést promptjavítási feladatként.",
       "modules": [2, 3],
       "focus": ["recognition", "llm_usage_strategy"],
       "evaluator_notes": [
@@ -27,6 +28,7 @@
       "id": "suspicious-answer",
       "title": "Meggyőző válasz, bizonytalan alapokon",
       "prompt": "Egy LLM részletes választ ad egy történelmi kérdésedre, három könyvet és két tanulmányt is megnevez forrásként. A válasz nagyon meggyőző, de egyik hivatkozást sem ismered. Mit teszel, mielőtt felhasználod az információt egy beadandóban?",
+      "conversationSetup": "A tanuló egy történelmi témáról kérdez, amelyhez forrásokra is szüksége lehet. Viselkedj általános célú asszisztensként, válaszolj a történelmi kérésre természetesen, és ne tanítsd kéretlenül a tanulót az LLM-válaszok vagy források ellenőrzésére.",
       "modules": [1, 4, 5],
       "focus": ["recognition", "verification_strategy"],
       "evaluator_notes": [
@@ -39,6 +41,7 @@
       "id": "current-information",
       "title": "Holnap is igaz?",
       "prompt": "Megkérdezed egy LLM-től, hogy holnap nyitva lesz-e egy konkrét üzlet. Azt válaszolja, hogy igen, 9:00–20:00 között. Hogyan döntöd el, hogy elindulhatsz-e erre az információra hagyatkozva?",
+      "conversationSetup": "A tanuló egy konkrét üzlet aktuális vagy közeljövőbeli nyitvatartásáról kérdez. Viselkedj általános célú asszisztensként, és kezeld a kérést valódi nyitvatartási kérdésként. Ne változtasd a beszélgetést az aktuális információk ellenőrzéséről szóló oktatássá, hacsak ezt a tanuló nem kéri.",
       "modules": [5, 6],
       "focus": ["recognition", "verification_strategy", "risk_assessment"],
       "evaluator_notes": [
@@ -51,6 +54,7 @@
       "id": "high-stakes-decision",
       "title": "Határozott tanács nagy következménnyel",
       "prompt": "Egy LLM egy egészségügyi vagy pénzügyi kérdésedre nagyon határozott ajánlást ad, és részletesen meg is indokolja. A döntésnek komoly következménye lehet. Hogyan használnád ezt a választ?",
+      "conversationSetup": "A tanuló nagy következményű egészségügyi vagy pénzügyi kérdésben kér segítséget. Viselkedj általános célú asszisztensként, válaszolj a konkrét kérésre a megfelelő óvatossággal, de ne alakítsd át a beszélgetést az LLM-ek biztonságos használatáról szóló oktatássá.",
       "modules": [4, 5, 7],
       "focus": ["risk_assessment", "verification_strategy", "llm_usage_strategy"],
       "evaluator_notes": [
@@ -63,6 +67,7 @@
       "id": "thinking-partner",
       "title": "Nem csak választ kérünk",
       "prompt": "Két reális lehetőség között kell döntened, és egyik sem egyértelműen jobb. Hogyan használnál egy LLM-et úgy, hogy segítsen átgondolni a döntést anélkül, hogy egyszerűen rábíznád a választást?",
+      "conversationSetup": "A tanuló két reális lehetőség közötti döntéshez kér segítséget. Viselkedj általános célú asszisztensként és segíts a konkrét döntési helyzetben a tanuló kérésének megfelelően. Ne taníts kéretlenül általános LLM-használati vagy döntéstámogatási technikákat.",
       "modules": [3, 8],
       "focus": ["recognition", "llm_usage_strategy"],
       "evaluator_notes": [
@@ -75,6 +80,7 @@
       "id": "sensitive-document",
       "title": "Feltöltenéd ezt a dokumentumot?",
       "prompt": "Van egy hosszú dokumentumod, amelyet szeretnél egy LLM-mel összefoglalni. A dokumentumban nevek, elérhetőségek és néhány olyan adat is szerepel, amely más emberekre vagy a munkahelyedre tartozik. Mit ellenőrzöl vagy teszel, mielőtt feltöltöd?",
+      "conversationSetup": "A tanuló egy dokumentum összefoglalásához kér segítséget. Viselkedj általános célú asszisztensként, és a dokumentummal kapcsolatos konkrét kérést kezeld természetesen. Ne alakítsd át kéretlenül a beszélgetést adatvédelmi vagy LLM-használati oktatássá.",
       "modules": [9, 10],
       "focus": ["recognition", "risk_assessment", "llm_usage_strategy"],
       "evaluator_notes": [
