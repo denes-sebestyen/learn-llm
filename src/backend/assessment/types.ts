@@ -22,5 +22,6 @@ export type DiagnosticScenario = {
   id: string;
   title: string;
   prompt: string;
+  conversationSetup: string;
   modules: number[];
 };
