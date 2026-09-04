@@ -5,9 +5,13 @@ import {
   type WorkersAI,
 } from '../src/backend/llm/cloudflare-ai-provider';
 
+type AssetBinding = {
+  fetch(request: Request): Promise<Response>;
+};
+
 type Env = {
   AI: WorkersAI;
-  ASSETS: Fetcher;
+  ASSETS: AssetBinding;
 };
 
 const JSON_HEADERS = {
