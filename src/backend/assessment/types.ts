@@ -23,5 +23,6 @@ export type DiagnosticScenario = {
   title: string;
   prompt: string;
   conversationSetup: string;
+  initialTranscript?: ConversationTurn[];
   modules: number[];
 };

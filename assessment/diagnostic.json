@@ -27,8 +27,20 @@
     {
       "id": "suspicious-answer",
       "title": "Meggyőző válasz, bizonytalan alapokon",
-      "prompt": "Egy LLM részletes választ ad egy történelmi kérdésedre, három könyvet és két tanulmányt is megnevez forrásként. A válasz nagyon meggyőző, de egyik hivatkozást sem ismered. Mit teszel, mielőtt felhasználod az információt egy beadandóban?",
-      "conversationSetup": "A tanuló egy történelmi témáról kérdez, amelyhez forrásokra is szüksége lehet. Viselkedj általános célú asszisztensként, válaszolj a történelmi kérésre természetesen, és ne tanítsd kéretlenül a tanulót az LLM-válaszok vagy források ellenőrzésére.",
+      "prompt": "Az alábbi beszélgetésben egy LLM részletes, magabiztos választ adott egy történelmi kérdésre, és több forrást is megnevezett. Folytasd a beszélgetést úgy, ahogy valóban tennéd, mielőtt az információt felhasználnád egy beadandóban.",
+      "conversationSetup": "A tanuló egy történelmi témáról beszélget veled. A beszélgetés elején már adtál neki egy részletes, magabiztos választ, amely szándékosan tartalmaz ellenőrizetlen és kitalált hivatkozásokat. A továbbiakban viselkedj általános célú asszisztensként. Ha a tanuló rákérdez a forrásokra vagy bizonyítékokra, reagálj természetesen, de ne tanítsd kéretlenül általánosságban az LLM-válaszok ellenőrzésére, és ne áruld el, hogy a kezdő válasz tesztcélból hibás.",
+      "initialTranscript": [
+        {
+          "id": 1,
+          "role": "user",
+          "content": "Milyen szerepe volt a kereskedelemnek a 15. századi Magyar Királyság városainak fejlődésében? Egy beadandóhoz gyűjtök anyagot, ezért forrásokat is adj hozzá."
+        },
+        {
+          "id": 2,
+          "role": "assistant",
+          "content": "A kereskedelem a 15. századi Magyar Királyság városfejlődésének egyik legfontosabb motorja volt. A távolsági kereskedelemhez kapcsolódó vám- és árumegállító jogok erősítették Buda, Pozsony, Kassa és más királyi városok gazdasági helyzetét, miközben a bányavárosok a nemesfémek exportján keresztül kapcsolódtak az európai kereskedelmi hálózatokhoz. A kereskedőréteg megerősödése a városi önkormányzatokra és a céhes kézműiparra is hatott. Jó kiinduló források: Kubinyi András: Városfejlődés és kereskedelem a késő középkori Magyarországon (Budapest, 1998); Szűcs Jenő: Városok és kereskedők Mátyás korában (Budapest, 1986); Engel Pál: The Realm of St Stephen (I.B. Tauris, 2001); valamint Kovács László: Trade Networks of the Hungarian Kingdom in the Fifteenth Century, Central European Historical Review 12/2 (2004), 41–68 és Nagy Éva: Merchants and Urban Growth under Matthias Corvinus, Journal of Medieval Hungarian Studies 7 (2009), 103–127."
+        }
+      ],
       "modules": [1, 4, 5],
       "focus": ["recognition", "verification_strategy"],
       "evaluator_notes": [
@@ -40,8 +52,20 @@
     {
       "id": "current-information",
       "title": "Holnap is igaz?",
-      "prompt": "Megkérdezed egy LLM-től, hogy holnap nyitva lesz-e egy konkrét üzlet. Azt válaszolja, hogy igen, 9:00–20:00 között. Hogyan döntöd el, hogy elindulhatsz-e erre az információra hagyatkozva?",
-      "conversationSetup": "A tanuló egy konkrét üzlet aktuális vagy közeljövőbeli nyitvatartásáról kérdez. Viselkedj általános célú asszisztensként, és kezeld a kérést valódi nyitvatartási kérdésként. Ne változtasd a beszélgetést az aktuális információk ellenőrzéséről szóló oktatássá, hacsak ezt a tanuló nem kéri.",
+      "prompt": "Az alábbi beszélgetésben egy LLM megadta egy üzlet holnapi nyitvatartását. Folytasd a beszélgetést úgy, ahogy valóban tennéd, ha azt szeretnéd eldönteni, hogy elindulhatsz-e erre az információra hagyatkozva.",
+      "conversationSetup": "A tanuló egy konkrét üzlet közeljövőbeli nyitvatartásáról beszélget veled. A beszélgetés elején már magabiztosan megadtál egy holnapi nyitvatartást anélkül, hogy jelezted volna, honnan származik az információ. A továbbiakban viselkedj általános célú asszisztensként. Ne változtasd a beszélgetést az aktuális információk ellenőrzéséről szóló oktatássá, hacsak ezt a tanuló nem kéri.",
+      "initialTranscript": [
+        {
+          "id": 1,
+          "role": "user",
+          "content": "Holnap nyitva lesz a Fő téri Példa Bolt?"
+        },
+        {
+          "id": 2,
+          "role": "assistant",
+          "content": "Igen, holnap nyitva lesz, 9:00 és 20:00 között."
+        }
+      ],
       "modules": [5, 6],
       "focus": ["recognition", "verification_strategy", "risk_assessment"],
       "evaluator_notes": [

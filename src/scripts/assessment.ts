@@ -2,6 +2,7 @@ type Scenario = {
   id: string;
   title: string;
   prompt: string;
+  initialTranscript?: Turn[];
   modules: number[];
 };
 
@@ -84,7 +85,14 @@ function renderScenario(): void {
 }
 
 function getUserTurnCount(): number {
-  return transcript.filter((turn) => turn.role === 'user').length;
+  const initialTurnCount = getCurrentScenario().initialTranscript?.filter(
+    (turn) => turn.role === 'user',
+  ).length ?? 0;
+
+  return Math.max(
+    0,
+    transcript.filter((turn) => turn.role === 'user').length - initialTurnCount,
+  );
 }
 
 function updateConversationState(): void {
@@ -163,12 +171,18 @@ function appendTurn(role: TurnRole, content: string): void {
 }
 
 function resetConversation(): void {
-  transcript = [];
+  const initialTranscript = getCurrentScenario().initialTranscript ?? [];
+
+  transcript = initialTranscript.map((turn) => ({ ...turn }));
   isWaitingForAssistant = false;
   hideThinkingIndicator();
 
   elements.messages.replaceChildren(elements.emptyState);
   elements.messageInput.value = '';
+
+  for (const turn of transcript) {
+    renderMessage(turn.role, turn.content);
+  }
 
   updateConversationState();
 }
@@ -273,7 +287,7 @@ function bindEventListeners(): void {
 
 function initializeAssessment(): void {
   renderScenario();
-  updateConversationState();
+  resetConversation();
   bindEventListeners();
 }
 
