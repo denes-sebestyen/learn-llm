@@ -56,6 +56,7 @@ const elements = {
 
 let transcript: Turn[] = [];
 let isWaitingForAssistant = false;
+let thinkingIndicator: HTMLDivElement | null = null;
 
 function getCurrentScenario(): Scenario {
   const selectedScenario = scenarios.find(
@@ -120,6 +121,37 @@ function renderMessage(role: TurnRole, content: string): void {
   elements.messages.scrollTop = elements.messages.scrollHeight;
 }
 
+function showThinkingIndicator(): void {
+  thinkingIndicator?.remove();
+
+  const message = document.createElement('div');
+  message.className = 'message assistant thinking';
+  message.setAttribute('role', 'status');
+  message.setAttribute('aria-label', 'Az LLM válaszol');
+
+  const label = document.createElement('span');
+  label.className = 'message-label';
+  label.textContent = 'LLM';
+
+  const dots = document.createElement('span');
+  dots.className = 'thinking-dots';
+  dots.setAttribute('aria-hidden', 'true');
+
+  for (let index = 0; index < 3; index += 1) {
+    dots.append(document.createElement('span'));
+  }
+
+  message.append(label, dots);
+  elements.messages.append(message);
+  elements.messages.scrollTop = elements.messages.scrollHeight;
+  thinkingIndicator = message;
+}
+
+function hideThinkingIndicator(): void {
+  thinkingIndicator?.remove();
+  thinkingIndicator = null;
+}
+
 function appendTurn(role: TurnRole, content: string): void {
   transcript.push({
     id: transcript.length + 1,
@@ -133,6 +165,7 @@ function appendTurn(role: TurnRole, content: string): void {
 function resetConversation(): void {
   transcript = [];
   isWaitingForAssistant = false;
+  hideThinkingIndicator();
 
   elements.messages.replaceChildren(elements.emptyState);
   elements.messageInput.value = '';
@@ -176,17 +209,21 @@ async function submitUserMessage(): Promise<void> {
   elements.messageInput.value = '';
   isWaitingForAssistant = true;
   updateConversationState();
+  showThinkingIndicator();
 
   try {
     const assistantContent = await requestAssistantTurn();
+    hideThinkingIndicator();
     appendTurn('assistant', assistantContent);
   } catch (error) {
     console.error('Could not continue assessment conversation.', error);
+    hideThinkingIndicator();
     renderMessage(
       'assistant',
       'A válasz most nem érkezett meg. Próbáld meg újra egy új üzenettel.',
     );
   } finally {
+    hideThinkingIndicator();
     isWaitingForAssistant = false;
     updateConversationState();
     elements.messageInput.focus();
