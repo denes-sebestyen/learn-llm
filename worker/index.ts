@@ -28,6 +28,18 @@ function json(data: unknown, status = 200): Response {
   });
 }
 
+function logError(context: string, error: unknown): void {
+  if (error instanceof Error) {
+    console.error(`${context}: ${error.name}: ${error.message}`, {
+      stack: error.stack,
+      cause: error.cause,
+    });
+    return;
+  }
+
+  console.error(`${context}: ${String(error)}`);
+}
+
 function isConversationTurn(value: unknown): boolean {
   if (!value || typeof value !== 'object') {
     return false;
@@ -96,7 +108,7 @@ async function handleAssessmentMessage(
 
     return json(response);
   } catch (error) {
-    console.error('Assessment conversation failed.', error);
+    logError('Assessment conversation failed', error);
     return json({ error: 'Could not continue the assessment conversation.' }, 500);
   }
 }
@@ -118,7 +130,7 @@ async function handleAssessmentProgress(
 
     return json(response);
   } catch (error) {
-    console.error('Assessment progress evaluation failed.', error);
+    logError('Assessment progress evaluation failed', error);
     return json({ error: 'Could not evaluate assessment progress.' }, 500);
   }
 }
