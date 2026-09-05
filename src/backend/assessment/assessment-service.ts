@@ -85,23 +85,12 @@ export class AssessmentService {
     const scenario = getScenario(request.scenarioId);
     const learnerTurnCount = getLearnerTurnCount(scenario, request.transcript);
     const maxTurnsReached = learnerTurnCount >= MAX_LEARNER_TURNS;
-
-    if (maxTurnsReached) {
-      return {
-        evidenceSufficient: false,
-        coveredDimensions: [],
-        missingDimensions: scenario.focus ?? [],
-        confidence: 1,
-        maxTurnsReached: true,
-      };
-    }
-
     const messages = buildProgressEvaluationMessages(scenario, request.transcript);
     const response = await this.modelProvider.generate({ messages });
 
     return {
       ...parseProgressResponse(response.content),
-      maxTurnsReached: false,
+      maxTurnsReached,
     };
   }
 }
