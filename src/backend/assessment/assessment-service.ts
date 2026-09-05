@@ -12,6 +12,8 @@ import type {
 
 const scenarios = diagnostic.scenarios as DiagnosticScenario[];
 const MAX_LEARNER_TURNS = 6;
+const CONVERSATION_MAX_TOKENS = 1024;
+const PROGRESS_MAX_TOKENS = 256;
 
 function getScenario(scenarioId: string): DiagnosticScenario {
   const scenario = scenarios.find((candidate) => candidate.id === scenarioId);
@@ -69,7 +71,10 @@ export class AssessmentService {
   ): Promise<AssessmentMessageResponse> {
     const scenario = getScenario(request.scenarioId);
     const messages = buildConversationMessages(scenario, request.transcript);
-    const response = await this.modelProvider.generate({ messages });
+    const response = await this.modelProvider.generate({
+      messages,
+      maxTokens: CONVERSATION_MAX_TOKENS,
+    });
 
     return {
       turn: {
@@ -86,7 +91,11 @@ export class AssessmentService {
     const learnerTurnCount = getLearnerTurnCount(scenario, request.transcript);
     const maxTurnsReached = learnerTurnCount >= MAX_LEARNER_TURNS;
     const messages = buildProgressEvaluationMessages(scenario, request.transcript);
-    const response = await this.modelProvider.generate({ messages });
+    const response = await this.modelProvider.generate({
+      messages,
+      maxTokens: PROGRESS_MAX_TOKENS,
+      responseFormat: { type: 'json_object' },
+    });
 
     return {
       ...parseProgressResponse(response.content),
