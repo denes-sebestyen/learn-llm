@@ -39,10 +39,14 @@ function getLearnerTurnCount(
   );
 }
 
-function parseProgressResponse(content: string): Omit<AssessmentProgressResponse, 'maxTurnsReached'> {
-  const parsed = JSON.parse(content) as Partial<AssessmentProgressResponse>;
+function parseProgressResponse(
+  value: unknown,
+): Omit<AssessmentProgressResponse, 'maxTurnsReached'> {
+  const parsed = value as Partial<AssessmentProgressResponse> | null;
 
   if (
+    !parsed ||
+    typeof parsed !== 'object' ||
     typeof parsed.evidenceSufficient !== 'boolean' ||
     !Array.isArray(parsed.coveredDimensions) ||
     !parsed.coveredDimensions.every((dimension) => typeof dimension === 'string') ||
@@ -76,6 +80,10 @@ export class AssessmentService {
       maxTokens: CONVERSATION_MAX_TOKENS,
     });
 
+    if (response.content === undefined) {
+      throw new Error('Conversation model returned a structured response.');
+    }
+
     return {
       turn: {
         role: 'assistant',
@@ -97,8 +105,12 @@ export class AssessmentService {
       responseFormat: { type: 'json_object' },
     });
 
+    const progress = response.structured !== undefined
+      ? response.structured
+      : JSON.parse(response.content);
+
     return {
-      ...parseProgressResponse(response.content),
+      ...parseProgressResponse(progress),
       maxTurnsReached,
     };
   }
