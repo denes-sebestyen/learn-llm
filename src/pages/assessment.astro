@@ -2,12 +2,15 @@
 import diagnostic from '../../assessment/diagnostic.json';
 import '../styles/assessment.scss';
 
-const scenarios = diagnostic.scenarios.map(({ id, title, prompt, modules }) => ({
-  id,
-  title,
-  prompt,
-  modules,
-}));
+const scenarios = diagnostic.scenarios.map(
+  ({ id, title, prompt, initialTranscript, modules }) => ({
+    id,
+    title,
+    prompt,
+    initialTranscript,
+    modules,
+  })
+);
 ---
 
 <!doctype html>
