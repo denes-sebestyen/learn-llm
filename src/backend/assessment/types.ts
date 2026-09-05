@@ -31,6 +31,11 @@ export type AssessmentProgressResponse = {
   maxTurnsReached: boolean;
 };
 
+export type ScenarioEvaluationPlan = {
+  targetBehaviors: string[];
+  sufficientWhen: string;
+};
+
 export type DiagnosticScenario = {
   id: string;
   title: string;
@@ -40,4 +45,5 @@ export type DiagnosticScenario = {
   modules: number[];
   focus?: string[];
   evaluator_notes?: string[];
+  evaluationPlan?: ScenarioEvaluationPlan;
 };
