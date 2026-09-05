@@ -18,6 +18,19 @@ export type AssessmentMessageResponse = {
   };
 };
 
+export type AssessmentProgressRequest = {
+  scenarioId: string;
+  transcript: ConversationTurn[];
+};
+
+export type AssessmentProgressResponse = {
+  evidenceSufficient: boolean;
+  coveredDimensions: string[];
+  missingDimensions: string[];
+  confidence: number;
+  maxTurnsReached: boolean;
+};
+
 export type DiagnosticScenario = {
   id: string;
   title: string;
@@ -25,4 +38,6 @@ export type DiagnosticScenario = {
   conversationSetup: string;
   initialTranscript?: ConversationTurn[];
   modules: number[];
+  focus?: string[];
+  evaluator_notes?: string[];
 };
