@@ -88,7 +88,7 @@ export class AssessmentService {
 
     if (maxTurnsReached) {
       return {
-        evidenceSufficient: true,
+        evidenceSufficient: false,
         coveredDimensions: [],
         missingDimensions: scenario.focus ?? [],
         confidence: 1,
