@@ -98,7 +98,14 @@
         "Keresse az alternatívák, szempontok, feltételezések, ellenérvek vagy érintettek feltárását.",
         "Erős válasz használhat premortemet, ellenkező álláspontot, összehasonlítási keretet vagy iterációt.",
         "Ne részesítsen előnyben egyetlen technikát; a cél a gondolkodás kiszélesítése és strukturálása."
-      ]
+      ],
+      "evaluationPlan": {
+        "targetBehaviors": [
+          "A tanuló reagál az LLM első döntéstámogató válaszára vagy visszakérdezésére.",
+          "A reakcióból megfigyelhető, hogy a tanuló hogyan iterál, ad-e új kontextust vagy használja-e az LLM által felvetett szempontokat a döntés továbbgondolására."
+        ],
+        "sufficientWhen": "A tanuló legalább egyszer reagált az LLM saját, a scenario során adott válaszára, és ebből a reakcióból megítélhető az iterációs vagy döntéstámogatási stratégiája. Az első learner üzenet önmagában nem elegendő, még akkor sem, ha már mutat valamit az LLM-használati stratégiájából."
+      }
     },
     {
       "id": "sensitive-document",
