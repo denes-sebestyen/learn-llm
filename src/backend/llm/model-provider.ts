@@ -5,6 +5,10 @@ export type ModelMessage = {
 
 export type ModelRequest = {
   messages: ModelMessage[];
+  maxTokens?: number;
+  responseFormat?: {
+    type: 'json_object';
+  };
 };
 
 export type ModelResponse = {

@@ -4,6 +4,8 @@ const CONVERSATION_MODEL = '@cf/meta/llama-3.1-8b-instruct-fast';
 
 type WorkersAIChatInput = {
   messages: ModelRequest['messages'];
+  max_tokens?: number;
+  response_format?: ModelRequest['responseFormat'];
 };
 
 type WorkersAIChatOutput = {
@@ -23,6 +25,8 @@ export class CloudflareAIProvider implements ModelProvider {
   async generate(request: ModelRequest): Promise<ModelResponse> {
     const result = await this.ai.run(CONVERSATION_MODEL, {
       messages: request.messages,
+      max_tokens: request.maxTokens,
+      response_format: request.responseFormat,
     });
 
     if (!result.response?.trim()) {
