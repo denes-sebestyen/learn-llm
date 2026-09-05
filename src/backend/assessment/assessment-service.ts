@@ -1,13 +1,17 @@
 import diagnostic from '../../../assessment/diagnostic.json';
 import { buildConversationMessages } from '../prompts/conversation';
+import { buildProgressEvaluationMessages } from '../prompts/progress';
 import type { ModelProvider } from '../llm/model-provider';
 import type {
   AssessmentMessageRequest,
   AssessmentMessageResponse,
+  AssessmentProgressRequest,
+  AssessmentProgressResponse,
   DiagnosticScenario,
 } from './types';
 
 const scenarios = diagnostic.scenarios as DiagnosticScenario[];
+const MAX_LEARNER_TURNS = 6;
 
 function getScenario(scenarioId: string): DiagnosticScenario {
   const scenario = scenarios.find((candidate) => candidate.id === scenarioId);
@@ -17,6 +21,44 @@ function getScenario(scenarioId: string): DiagnosticScenario {
   }
 
   return scenario;
+}
+
+function getLearnerTurnCount(
+  scenario: DiagnosticScenario,
+  transcript: AssessmentProgressRequest['transcript'],
+): number {
+  const initialUserTurns = scenario.initialTranscript?.filter(
+    (turn) => turn.role === 'user',
+  ).length ?? 0;
+
+  return Math.max(
+    0,
+    transcript.filter((turn) => turn.role === 'user').length - initialUserTurns,
+  );
+}
+
+function parseProgressResponse(content: string): Omit<AssessmentProgressResponse, 'maxTurnsReached'> {
+  const parsed = JSON.parse(content) as Partial<AssessmentProgressResponse>;
+
+  if (
+    typeof parsed.evidenceSufficient !== 'boolean' ||
+    !Array.isArray(parsed.coveredDimensions) ||
+    !parsed.coveredDimensions.every((dimension) => typeof dimension === 'string') ||
+    !Array.isArray(parsed.missingDimensions) ||
+    !parsed.missingDimensions.every((dimension) => typeof dimension === 'string') ||
+    typeof parsed.confidence !== 'number' ||
+    parsed.confidence < 0 ||
+    parsed.confidence > 1
+  ) {
+    throw new Error('Progress evaluator returned an invalid response.');
+  }
+
+  return {
+    evidenceSufficient: parsed.evidenceSufficient,
+    coveredDimensions: parsed.coveredDimensions,
+    missingDimensions: parsed.missingDimensions,
+    confidence: parsed.confidence,
+  };
 }
 
 export class AssessmentService {
@@ -34,6 +76,32 @@ export class AssessmentService {
         role: 'assistant',
         content: response.content,
       },
+    };
+  }
+
+  async evaluateProgress(
+    request: AssessmentProgressRequest,
+  ): Promise<AssessmentProgressResponse> {
+    const scenario = getScenario(request.scenarioId);
+    const learnerTurnCount = getLearnerTurnCount(scenario, request.transcript);
+    const maxTurnsReached = learnerTurnCount >= MAX_LEARNER_TURNS;
+
+    if (maxTurnsReached) {
+      return {
+        evidenceSufficient: true,
+        coveredDimensions: [],
+        missingDimensions: scenario.focus ?? [],
+        confidence: 1,
+        maxTurnsReached: true,
+      };
+    }
+
+    const messages = buildProgressEvaluationMessages(scenario, request.transcript);
+    const response = await this.modelProvider.generate({ messages });
+
+    return {
+      ...parseProgressResponse(response.content),
+      maxTurnsReached: false,
     };
   }
 }
