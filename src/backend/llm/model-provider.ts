@@ -11,9 +11,15 @@ export type ModelRequest = {
   };
 };
 
-export type ModelResponse = {
-  content: string;
-};
+export type ModelResponse =
+  | {
+      content: string;
+      structured?: never;
+    }
+  | {
+      content?: never;
+      structured: unknown;
+    };
 
 export interface ModelProvider {
   generate(request: ModelRequest): Promise<ModelResponse>;

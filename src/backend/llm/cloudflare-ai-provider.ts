@@ -9,7 +9,7 @@ type WorkersAIChatInput = {
 };
 
 type WorkersAIChatOutput = {
-  response?: string;
+  response?: unknown;
 };
 
 export type WorkersAI = {
@@ -29,12 +29,20 @@ export class CloudflareAIProvider implements ModelProvider {
       response_format: request.responseFormat,
     });
 
-    if (!result.response?.trim()) {
-      throw new Error('Workers AI returned an empty response.');
+    if (typeof result.response === 'string') {
+      const content = result.response.trim();
+
+      if (!content) {
+        throw new Error('Workers AI returned an empty response.');
+      }
+
+      return { content };
     }
 
-    return {
-      content: result.response.trim(),
-    };
+    if (result.response !== undefined && result.response !== null) {
+      return { structured: result.response };
+    }
+
+    throw new Error('Workers AI returned an empty response.');
   }
 }
