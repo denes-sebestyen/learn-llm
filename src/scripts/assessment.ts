@@ -21,6 +21,14 @@ type AssessmentMessageResponse = {
   };
 };
 
+type AssessmentProgressResponse = {
+  evidenceSufficient: boolean;
+  coveredDimensions: string[];
+  missingDimensions: string[];
+  confidence: number;
+  maxTurnsReached: boolean;
+};
+
 function getElement<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
 
@@ -58,6 +66,7 @@ const elements = {
 let transcript: Turn[] = [];
 let isWaitingForAssistant = false;
 let thinkingIndicator: HTMLDivElement | null = null;
+let progressNotice: HTMLDivElement | null = null;
 
 function getCurrentScenario(): Scenario {
   const selectedScenario = scenarios.find(
@@ -160,6 +169,44 @@ function hideThinkingIndicator(): void {
   thinkingIndicator = null;
 }
 
+function hideProgressNotice(): void {
+  progressNotice?.remove();
+  progressNotice = null;
+}
+
+function showProgressNotice(maxTurnsReached: boolean): void {
+  hideProgressNotice();
+
+  const notice = document.createElement('div');
+  notice.className = 'progress-notice';
+  notice.setAttribute('role', 'status');
+
+  const text = document.createElement('span');
+  text.textContent = maxTurnsReached
+    ? 'Elértük ennek a feladatnak a tervezett hosszát. A beszélgetés már kiértékelhető.'
+    : 'Úgy tűnik, ebből a beszélgetésből már értékelhető a megközelítésed.';
+
+  const evaluate = document.createElement('button');
+  evaluate.type = 'button';
+  evaluate.className = 'button primary';
+  evaluate.textContent = 'Kiértékelés';
+  evaluate.addEventListener('click', openEvaluationDialog);
+
+  const continueButton = document.createElement('button');
+  continueButton.type = 'button';
+  continueButton.className = 'button';
+  continueButton.textContent = 'Folytatom még';
+  continueButton.addEventListener('click', () => {
+    hideProgressNotice();
+    elements.messageInput.focus();
+  });
+
+  notice.append(text, evaluate, continueButton);
+  elements.messages.append(notice);
+  elements.messages.scrollTop = elements.messages.scrollHeight;
+  progressNotice = notice;
+}
+
 function appendTurn(role: TurnRole, content: string): void {
   transcript.push({
     id: transcript.length + 1,
@@ -176,6 +223,7 @@ function resetConversation(): void {
   transcript = initialTranscript.map((turn) => ({ ...turn }));
   isWaitingForAssistant = false;
   hideThinkingIndicator();
+  hideProgressNotice();
 
   elements.messages.replaceChildren(elements.emptyState);
   elements.messageInput.value = '';
@@ -187,8 +235,8 @@ function resetConversation(): void {
   updateConversationState();
 }
 
-async function requestAssistantTurn(): Promise<string> {
-  const response = await fetch('/api/assessment/message', {
+async function postAssessment<T>(path: string): Promise<T> {
+  const response = await fetch(path, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -203,13 +251,34 @@ async function requestAssistantTurn(): Promise<string> {
     throw new Error(`Assessment API returned ${response.status}.`);
   }
 
-  const result = (await response.json()) as AssessmentMessageResponse;
+  return response.json() as Promise<T>;
+}
+
+async function requestAssistantTurn(): Promise<string> {
+  const result = await postAssessment<AssessmentMessageResponse>(
+    '/api/assessment/message',
+  );
 
   if (!result.turn?.content?.trim()) {
     throw new Error('Assessment API returned an empty assistant turn.');
   }
 
   return result.turn.content.trim();
+}
+
+async function checkConversationProgress(): Promise<void> {
+  try {
+    const progress = await postAssessment<AssessmentProgressResponse>(
+      '/api/assessment/progress',
+    );
+
+    if (progress.evidenceSufficient || progress.maxTurnsReached) {
+      showProgressNotice(progress.maxTurnsReached);
+    }
+  } catch (error) {
+    // Progress evaluation is advisory: a failure must not interrupt the conversation.
+    console.error('Could not evaluate assessment progress.', error);
+  }
 }
 
 async function submitUserMessage(): Promise<void> {
@@ -219,6 +288,7 @@ async function submitUserMessage(): Promise<void> {
     return;
   }
 
+  hideProgressNotice();
   appendTurn('user', content);
   elements.messageInput.value = '';
   isWaitingForAssistant = true;
@@ -229,6 +299,7 @@ async function submitUserMessage(): Promise<void> {
     const assistantContent = await requestAssistantTurn();
     hideThinkingIndicator();
     appendTurn('assistant', assistantContent);
+    await checkConversationProgress();
   } catch (error) {
     console.error('Could not continue assessment conversation.', error);
     hideThinkingIndicator();
