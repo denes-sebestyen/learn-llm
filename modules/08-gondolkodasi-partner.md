@@ -139,6 +139,32 @@ az LLM nem válik tényleges ügyvéddé, és nem kap hozzáférést olyan infor
 
 A szerep jó eszköz lehet **gondolkodási keret megadására**, de nem hitelesítő pecsét.
 
+Ugyanez fejlesztői feladatoknál is gyakran előkerül:
+
+> Te egy senior fejlesztő vagy. Nézd át ezt a kódot.
+
+Ez adhat valamennyi iránymutatást a kívánt válasz stílusáról és mélységéről, de nem kapcsol be egy rejtett „senior módot”. Általában többet ér, ha megmondod, **milyen munkát vársz el és milyen szempontok szerint**:
+
+> Review-zd ezt a kódot. Keresd külön az API-design, hibakezelés, tesztelhetőség és hosszú távú karbantarthatóság problémáit. A pusztán stilisztikai eltéréseket hagyd figyelmen kívül.
+
+A szerepet és a konkrét szempontokat természetesen kombinálhatod is. A lényeg, hogy a szerep önmagában ne helyettesítse a feladat pontos leírását.
+
+## A „ne hibázz” nem hibakezelési stratégia
+
+Még kevésbé hasznos az olyan utasítás, mint:
+
+> Make no mistakes.
+
+Az LLM eleve nem azért téved, mert úgy döntött, hogy most hibázni fog. A „ne hibázz” nem mondja meg neki, **hogyan ismerje fel vagy csökkentse a tévedés lehetőségét**.
+
+Sokkal használhatóbb például:
+
+> Ellenőrizd külön a feltételezéseidet. Jelezd, mely állításokban vagy bizonytalan. A verziófüggő információkat ne feltételezd, hanem ellenőrizd friss dokumentációból, ha erre van lehetőséged.
+
+Ez konkrét eljárást kér a puszta kívánság helyett.
+
+> **Ne varázsigével próbáld jobbá tenni a modellt; adj neki jobb feladatot.**
+
 ---
 
 # 5. Nézd meg ugyanazt több nézőpontból
