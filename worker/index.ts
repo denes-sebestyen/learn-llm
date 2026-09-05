@@ -1,5 +1,8 @@
 import { AssessmentService } from '../src/backend/assessment/assessment-service';
-import type { AssessmentMessageRequest } from '../src/backend/assessment/types';
+import type {
+  AssessmentMessageRequest,
+  AssessmentProgressRequest,
+} from '../src/backend/assessment/types';
 import {
   CloudflareAIProvider,
   type WorkersAI,
@@ -40,9 +43,9 @@ function isConversationTurn(value: unknown): boolean {
   );
 }
 
-function isAssessmentMessageRequest(
+function isAssessmentRequest(
   value: unknown,
-): value is AssessmentMessageRequest {
+): value is AssessmentMessageRequest | AssessmentProgressRequest {
   if (!value || typeof value !== 'object') {
     return false;
   }
@@ -57,26 +60,39 @@ function isAssessmentMessageRequest(
   );
 }
 
-async function handleAssessmentMessage(
-  request: Request,
-  env: Env,
-): Promise<Response> {
+async function readAssessmentRequest(request: Request): Promise<
+  | { body: AssessmentMessageRequest | AssessmentProgressRequest }
+  | { response: Response }
+> {
   let body: unknown;
 
   try {
     body = await request.json();
   } catch {
-    return json({ error: 'Invalid JSON request body.' }, 400);
+    return { response: json({ error: 'Invalid JSON request body.' }, 400) };
   }
 
-  if (!isAssessmentMessageRequest(body)) {
-    return json({ error: 'Invalid assessment message request.' }, 400);
+  if (!isAssessmentRequest(body)) {
+    return { response: json({ error: 'Invalid assessment request.' }, 400) };
+  }
+
+  return { body };
+}
+
+async function handleAssessmentMessage(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const parsed = await readAssessmentRequest(request);
+
+  if ('response' in parsed) {
+    return parsed.response;
   }
 
   try {
     const provider = new CloudflareAIProvider(env.AI);
     const service = new AssessmentService(provider);
-    const response = await service.continueConversation(body);
+    const response = await service.continueConversation(parsed.body);
 
     return json(response);
   } catch (error) {
@@ -85,16 +101,43 @@ async function handleAssessmentMessage(
   }
 }
 
+async function handleAssessmentProgress(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const parsed = await readAssessmentRequest(request);
+
+  if ('response' in parsed) {
+    return parsed.response;
+  }
+
+  try {
+    const provider = new CloudflareAIProvider(env.AI);
+    const service = new AssessmentService(provider);
+    const response = await service.evaluateProgress(parsed.body);
+
+    return json(response);
+  } catch (error) {
+    console.error('Assessment progress evaluation failed.', error);
+    return json({ error: 'Could not evaluate assessment progress.' }, 500);
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
-    if (url.pathname === '/api/assessment/message') {
+    if (
+      url.pathname === '/api/assessment/message' ||
+      url.pathname === '/api/assessment/progress'
+    ) {
       if (request.method !== 'POST') {
         return json({ error: 'Method not allowed.' }, 405);
       }
 
-      return handleAssessmentMessage(request, env);
+      return url.pathname === '/api/assessment/message'
+        ? handleAssessmentMessage(request, env)
+        : handleAssessmentProgress(request, env);
     }
 
     return env.ASSETS.fetch(request);
