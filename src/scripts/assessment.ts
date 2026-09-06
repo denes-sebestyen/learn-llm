@@ -23,9 +23,10 @@ type AssessmentMessageResponse = {
 
 type AssessmentProgressResponse = {
   evidenceSufficient: boolean;
-  coveredDimensions: string[];
-  missingDimensions: string[];
-  confidence: number;
+  dimensions: Array<{
+    dimension: string;
+    observability: number;
+  }>;
   maxTurnsReached: boolean;
 };
 
