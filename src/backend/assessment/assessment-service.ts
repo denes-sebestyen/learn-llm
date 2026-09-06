@@ -13,7 +13,12 @@ import type {
 
 const scenarios = diagnostic.scenarios as DiagnosticScenario[];
 const MAX_LEARNER_TURNS = 6;
-const MIN_OBSERVABILITY = 0.75;
+const MIN_OBSERVABILITY: Record<string, number> = {
+  recognition: 0.75,
+  risk_assessment: 0.75,
+  verification_strategy: 0.75,
+  llm_usage_strategy: 0.75,
+};
 const CONVERSATION_MAX_TOKENS = 1024;
 const PROGRESS_MAX_TOKENS = 256;
 
@@ -77,7 +82,15 @@ function hasSufficientEvidence(
   dimensions: DimensionObservability[],
 ): boolean {
   return dimensions.length > 0 && dimensions.every(
-    ({ observability }) => observability >= MIN_OBSERVABILITY,
+    ({ dimension, observability }) => {
+      const minimum = MIN_OBSERVABILITY[dimension];
+
+      if (minimum === undefined) {
+        throw new Error(`Missing observability threshold for dimension: ${dimension}`);
+      }
+
+      return observability >= minimum;
+    },
   );
 }
 
