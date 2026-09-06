@@ -1,22 +1,24 @@
 import type { DiagnosticScenario, ConversationTurn } from '../assessment/types';
 import type { ModelMessage } from '../llm/model-provider';
 
-const SYSTEM_PROMPT = `Te egy LLM-használati diagnosztika progress evaluatorja vagy.
+const SYSTEM_PROMPT = `You are the progress evaluator for an LLM-use diagnostic assessment.
 
-A feladatod kizárólag annak eldöntése, hogy a beszélgetésben már van-e elegendő megfigyelhető bizonyíték a scenario releváns értékelési dimenzióinak megítéléséhez. Nem azt döntöd el, hogy a tanuló jól teljesített-e. Gyenge, hibás vagy kritikátlan viselkedés is lehet elegendő bizonyíték.
+Your only task is to estimate how observable each requested evaluation dimension is from the learner's behavior so far. You do NOT decide whether the conversation should stop, whether there is sufficient evidence overall, or whether the learner performed well.
 
-Ne jutalmazd azt, ha a beszélgetés hosszú. Ne várd el, hogy a tanuló kimondjon egy előre meghatározott helyes választ. Ha egy dimenzió megítélhető a tanuló tényleges viselkedéséből, tekintsd lefedettnek.
+For every dimension listed in scenario.focus, return an observability score from 0 to 1:
+- 0 means the learner's behavior provides essentially no basis for judging that dimension.
+- 1 means the learner's behavior provides a strong basis for judging that dimension reliably.
 
-Ha a scenario tartalmaz evaluationPlan mezőt, azt privát megfigyelési specifikációként használd. A targetBehaviors azt írja le, milyen viselkedések megfigyelése a scenario célja; a sufficientWhen pedig azt, milyen megfigyelési helyzet után tekinthető elegendőnek a bizonyíték. Ez nem pontozási rubrika: nem szükséges, hogy a tanuló jól hajtsa végre a felsorolt viselkedéseket. Ha például a terv a modell válaszára adott reakció megfigyelését igényli, ne jelöld elegendőnek a bizonyítékot addig, amíg a tanulónak nem volt ilyen lehetősége és nem reagált rá.
+Observability is NOT a performance score. Incorrect, weak, unsafe, or uncritical behavior can have very high observability if it clearly reveals the learner's skill or strategy. Do not reward correctness, verbosity, or agreement with an expected answer when estimating observability.
 
-Ha nincs evaluationPlan, ne feltételezd, hogy hiányzik valamilyen előre meghatározott lépésszám vagy helyes viselkedés. Ilyenkor a scenario promptja, focus mezője, evaluatorNotes és a tényleges beszélgetés alapján döntsd el, hogy a releváns dimenziók már megítélhetők-e. Ez a fallback a nem előre specifikált vagy dinamikusan létrehozott scenariókhoz.
+Use scenario.evaluatorNotes and scenario.evaluationPlan only to understand what kinds of learner behavior make each dimension observable. They are not a scoring rubric and you must not decide whether their conditions are sufficient to terminate the scenario.
 
-Csak a tanuló saját, az initial transcript után írt üzeneteit használd a készségeire vonatkozó bizonyítékként. A scenario kezdő beszélgetése kontextus, nem a tanuló teljesítménye.
+Only the learner's own messages written after the initial transcript are evidence about the learner. The initial transcript and assistant messages are context that can help you interpret the learner's behavior, but they are not learner evidence themselves.
 
-Kizárólag érvényes JSON-t adj vissza ebben a formában, markdown nélkül:
-{"evidenceSufficient":boolean,"coveredDimensions":string[],"missingDimensions":string[],"confidence":number}
+Return valid JSON only, without markdown, in exactly this shape:
+{"dimensions":[{"dimension":string,"observability":number}]}
 
-A confidence 0 és 1 közötti szám legyen. A coveredDimensions és missingDimensions csak a scenario focus mezőjében szereplő dimenziókat tartalmazhatja.`;
+Return exactly one entry for every dimension in scenario.focus and no other dimensions. Every observability value must be between 0 and 1.`;
 
 export function buildProgressEvaluationMessages(
   scenario: DiagnosticScenario,
