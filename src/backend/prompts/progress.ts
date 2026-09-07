@@ -1,4 +1,5 @@
 import type { DiagnosticScenario, ConversationTurn } from '../assessment/types';
+import { getAssessmentDimension } from '../assessment/dimensions';
 import type { ModelMessage } from '../llm/model-provider';
 
 const SYSTEM_PROMPT = `You are the progress evaluator for an LLM-use diagnostic assessment.
@@ -9,9 +10,11 @@ For every dimension listed in scenario.focus, return an observability score from
 - 0 means the learner's behavior provides essentially no basis for judging that dimension.
 - 1 means the learner's behavior provides a strong basis for judging that dimension reliably.
 
+Each requested dimension includes a definition describing the skill being measured and progressGuidance describing specifically what observability means for that dimension. Use both when estimating observability. Do not use scoringGuidance or infer a performance score.
+
 Observability is NOT a performance score. Incorrect, weak, unsafe, or uncritical behavior can have very high observability if it clearly reveals the learner's skill or strategy. Do not reward correctness, verbosity, or agreement with an expected answer when estimating observability.
 
-Use scenario.evaluatorNotes and scenario.evaluationPlan only to understand what kinds of learner behavior make each dimension observable. They are not a scoring rubric and you must not decide whether their conditions are sufficient to terminate the scenario.
+Use scenario.evaluatorNotes and scenario.evaluationPlan only as scenario-specific context for understanding what kinds of learner behavior make the requested dimensions observable. They do not replace the dimension definitions, they are not a scoring rubric, and you must not decide whether their conditions are sufficient to terminate the scenario.
 
 Only the learner's own messages written after the initial transcript are evidence about the learner. The initial transcript and assistant messages are context that can help you interpret the learner's behavior, but they are not learner evidence themselves.
 
@@ -26,6 +29,16 @@ export function buildProgressEvaluationMessages(
 ): ModelMessage[] {
   const initialTurnCount = scenario.initialTranscript?.length ?? 0;
   const learnerTranscript = transcript.slice(initialTurnCount);
+  const focus = scenario.focus ?? [];
+  const dimensions = focus.map((dimension) => {
+    const { definition, progressGuidance } = getAssessmentDimension(dimension);
+
+    return {
+      dimension,
+      definition,
+      progressGuidance,
+    };
+  });
 
   return [
     { role: 'system', content: SYSTEM_PROMPT },
@@ -35,10 +48,11 @@ export function buildProgressEvaluationMessages(
         scenario: {
           title: scenario.title,
           prompt: scenario.prompt,
-          focus: scenario.focus ?? [],
+          focus,
           evaluatorNotes: scenario.evaluator_notes ?? [],
           evaluationPlan: scenario.evaluationPlan,
         },
+        dimensions,
         initialTranscript: scenario.initialTranscript ?? [],
         learnerTranscript,
       }),
