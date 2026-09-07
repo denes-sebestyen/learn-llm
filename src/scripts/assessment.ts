@@ -273,6 +273,18 @@ async function checkConversationProgress(): Promise<void> {
       '/api/assessment/progress',
     );
 
+    console.debug('Assessment progress', {
+      scenarioId: getCurrentScenario().id,
+      learnerTurns: getUserTurnCount(),
+      dimensions: progress.dimensions,
+      evidenceSufficient: progress.evidenceSufficient,
+      maxTurnsReached: progress.maxTurnsReached,
+      noticeTriggeredBy: {
+        evidence: progress.evidenceSufficient,
+        turnLimit: progress.maxTurnsReached,
+      },
+    });
+
     if (progress.evidenceSufficient || progress.maxTurnsReached) {
       showProgressNotice(progress.maxTurnsReached);
     }
