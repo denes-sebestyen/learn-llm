@@ -21,13 +21,20 @@ type AssessmentMessageResponse = {
   };
 };
 
+type DimensionObservability = {
+  dimension: string;
+  observability: number;
+};
+
 type AssessmentProgressResponse = {
   evidenceSufficient: boolean;
-  dimensions: Array<{
-    dimension: string;
-    observability: number;
-  }>;
+  dimensions: DimensionObservability[];
   maxTurnsReached: boolean;
+};
+
+type ProgressHistoryEntry = {
+  learnerTurn: number;
+  dimensions: DimensionObservability[];
 };
 
 function getElement<T extends HTMLElement>(id: string): T {
@@ -65,6 +72,7 @@ const elements = {
 };
 
 let transcript: Turn[] = [];
+let progressHistory: ProgressHistoryEntry[] = [];
 let isWaitingForAssistant = false;
 let thinkingIndicator: HTMLDivElement | null = null;
 let progressNotice: HTMLDivElement | null = null;
@@ -222,6 +230,7 @@ function resetConversation(): void {
   const initialTranscript = getCurrentScenario().initialTranscript ?? [];
 
   transcript = initialTranscript.map((turn) => ({ ...turn }));
+  progressHistory = [];
   isWaitingForAssistant = false;
   hideThinkingIndicator();
   hideProgressNotice();
@@ -267,11 +276,62 @@ async function requestAssistantTurn(): Promise<string> {
   return result.turn.content.trim();
 }
 
+function logProgressHistory(progress: AssessmentProgressResponse): void {
+  const learnerTurn = getUserTurnCount();
+  progressHistory.push({
+    learnerTurn,
+    dimensions: progress.dimensions.map((dimension) => ({ ...dimension })),
+  });
+
+  const rows = progressHistory.flatMap((entry, historyIndex) =>
+    entry.dimensions.map(({ dimension, observability }) => {
+      const previousEntry = progressHistory[historyIndex - 1];
+      const previous = previousEntry?.dimensions.find(
+        (candidate) => candidate.dimension === dimension,
+      )?.observability;
+      const peak = Math.max(
+        ...progressHistory
+          .slice(0, historyIndex + 1)
+          .flatMap((candidate) => candidate.dimensions)
+          .filter((candidate) => candidate.dimension === dimension)
+          .map((candidate) => candidate.observability),
+      );
+      const delta = previous === undefined ? undefined : observability - previous;
+
+      return {
+        turn: entry.learnerTurn,
+        dimension,
+        current: observability,
+        previous: previous ?? '—',
+        peak,
+        delta: delta === undefined ? '—' : Number(delta.toFixed(2)),
+        regression: delta !== undefined && delta < 0 ? '↓' : '',
+      };
+    }),
+  );
+
+  console.groupCollapsed(
+    `Assessment progress · ${getCurrentScenario().id} · turn ${learnerTurn}`,
+  );
+  console.table(rows);
+  console.debug('Trigger', {
+    evidenceSufficient: progress.evidenceSufficient,
+    maxTurnsReached: progress.maxTurnsReached,
+    noticeTriggeredBy: {
+      evidence: progress.evidenceSufficient,
+      turnLimit: progress.maxTurnsReached,
+    },
+  });
+  console.groupEnd();
+}
+
 async function checkConversationProgress(): Promise<void> {
   try {
     const progress = await postAssessment<AssessmentProgressResponse>(
       '/api/assessment/progress',
     );
+
+    logProgressHistory(progress);
 
     if (progress.evidenceSufficient || progress.maxTurnsReached) {
       showProgressNotice(progress.maxTurnsReached);
