@@ -1,3 +1,5 @@
+import type { EvaluationDimension } from './dimensions';
+
 export type TurnRole = 'user' | 'assistant';
 
 export type ConversationTurn = {
@@ -24,7 +26,7 @@ export type AssessmentProgressRequest = {
 };
 
 export type DimensionObservability = {
-  dimension: string;
+  dimension: EvaluationDimension;
   observability: number;
 };
 
@@ -46,7 +48,7 @@ export type DiagnosticScenario = {
   conversationSetup: string;
   initialTranscript?: ConversationTurn[];
   modules: number[];
-  focus?: string[];
+  focus?: EvaluationDimension[];
   evaluator_notes?: string[];
   evaluationPlan?: ScenarioEvaluationPlan;
 };
