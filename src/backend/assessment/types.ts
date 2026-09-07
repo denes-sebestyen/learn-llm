@@ -23,11 +23,14 @@ export type AssessmentProgressRequest = {
   transcript: ConversationTurn[];
 };
 
+export type DimensionObservability = {
+  dimension: string;
+  observability: number;
+};
+
 export type AssessmentProgressResponse = {
   evidenceSufficient: boolean;
-  coveredDimensions: string[];
-  missingDimensions: string[];
-  confidence: number;
+  dimensions: DimensionObservability[];
   maxTurnsReached: boolean;
 };
 
