@@ -2,6 +2,11 @@ import diagnostic from '../../../assessment/diagnostic.json';
 import { buildConversationMessages } from '../prompts/conversation';
 import { buildProgressEvaluationMessages } from '../prompts/progress';
 import type { ModelProvider } from '../llm/model-provider';
+import {
+  getAssessmentDimension,
+  isEvaluationDimension,
+  type EvaluationDimension,
+} from './dimensions';
 import type {
   AssessmentMessageRequest,
   AssessmentMessageResponse,
@@ -13,12 +18,6 @@ import type {
 
 const scenarios = diagnostic.scenarios as DiagnosticScenario[];
 const MAX_LEARNER_TURNS = 6;
-const MIN_OBSERVABILITY: Record<string, number> = {
-  recognition: 0.75,
-  risk_assessment: 0.75,
-  verification_strategy: 0.75,
-  llm_usage_strategy: 0.75,
-};
 const CONVERSATION_MAX_TOKENS = 1024;
 const PROGRESS_MAX_TOKENS = 256;
 
@@ -48,7 +47,7 @@ function getLearnerTurnCount(
 
 function parseProgressResponse(
   value: unknown,
-  focus: string[],
+  focus: EvaluationDimension[],
 ): DimensionObservability[] {
   const parsed = value as { dimensions?: unknown } | null;
 
@@ -56,7 +55,10 @@ function parseProgressResponse(
     throw new Error('Progress evaluator returned an invalid response.');
   }
 
-  const dimensions = parsed.dimensions as Partial<DimensionObservability>[];
+  const dimensions = parsed.dimensions as Array<{
+    dimension?: unknown;
+    observability?: unknown;
+  }>;
 
   if (
     dimensions.length !== focus.length ||
@@ -65,6 +67,7 @@ function parseProgressResponse(
         entry &&
         typeof entry === 'object' &&
         typeof entry.dimension === 'string' &&
+        isEvaluationDimension(entry.dimension) &&
         focus.includes(entry.dimension) &&
         typeof entry.observability === 'number' &&
         entry.observability >= 0 &&
@@ -82,15 +85,8 @@ function hasSufficientEvidence(
   dimensions: DimensionObservability[],
 ): boolean {
   return dimensions.length > 0 && dimensions.every(
-    ({ dimension, observability }) => {
-      const minimum = MIN_OBSERVABILITY[dimension];
-
-      if (minimum === undefined) {
-        throw new Error(`Missing observability threshold for dimension: ${dimension}`);
-      }
-
-      return observability >= minimum;
-    },
+    ({ dimension, observability }) =>
+      observability >= getAssessmentDimension(dimension).minObservability,
   );
 }
 
