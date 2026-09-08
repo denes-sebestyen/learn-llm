@@ -32,9 +32,27 @@ type AssessmentProgressResponse = {
   maxTurnsReached: boolean;
 };
 
+type DimensionEvaluation = {
+  dimension: string;
+  score: number;
+  evidence: string[];
+  reason: string;
+};
+
+type AssessmentEvaluationResponse = {
+  dimensions: DimensionEvaluation[];
+};
+
 type ProgressHistoryEntry = {
   learnerTurn: number;
   dimensions: DimensionObservability[];
+};
+
+const DIMENSION_LABELS: Record<string, string> = {
+  recognition: 'Felismerés',
+  risk_assessment: 'Kockázatértékelés',
+  verification_strategy: 'Ellenőrzési stratégia',
+  llm_usage_strategy: 'LLM-használati stratégia',
 };
 
 function getElement<T extends HTMLElement>(id: string): T {
@@ -74,6 +92,7 @@ const elements = {
 let transcript: Turn[] = [];
 let progressHistory: ProgressHistoryEntry[] = [];
 let isWaitingForAssistant = false;
+let isEvaluating = false;
 let thinkingIndicator: HTMLDivElement | null = null;
 let progressNotice: HTMLDivElement | null = null;
 
@@ -117,8 +136,9 @@ function updateConversationState(): void {
   const userTurnCount = getUserTurnCount();
 
   elements.turnCounter.textContent = `${userTurnCount} forduló`;
-  elements.evaluateButton.disabled = userTurnCount === 0 || isWaitingForAssistant;
-  elements.messageInput.disabled = isWaitingForAssistant;
+  elements.evaluateButton.disabled =
+    userTurnCount === 0 || isWaitingForAssistant || isEvaluating;
+  elements.messageInput.disabled = isWaitingForAssistant || isEvaluating;
 }
 
 function createMessageElement(role: TurnRole, content: string): HTMLDivElement {
@@ -199,7 +219,7 @@ function showProgressNotice(maxTurnsReached: boolean): void {
   evaluate.type = 'button';
   evaluate.className = 'button primary';
   evaluate.textContent = 'Kiértékelés';
-  evaluate.addEventListener('click', openEvaluationDialog);
+  evaluate.addEventListener('click', () => void evaluateConversation());
 
   const continueButton = document.createElement('button');
   continueButton.type = 'button';
@@ -232,11 +252,13 @@ function resetConversation(): void {
   transcript = initialTranscript.map((turn) => ({ ...turn }));
   progressHistory = [];
   isWaitingForAssistant = false;
+  isEvaluating = false;
   hideThinkingIndicator();
   hideProgressNotice();
 
   elements.messages.replaceChildren(elements.emptyState);
   elements.messageInput.value = '';
+  elements.evaluationDialog.close();
 
   for (const turn of transcript) {
     renderMessage(turn.role, turn.content);
@@ -337,7 +359,6 @@ async function checkConversationProgress(): Promise<void> {
       showProgressNotice(progress.maxTurnsReached);
     }
   } catch (error) {
-    // Progress evaluation is advisory: a failure must not interrupt the conversation.
     console.error('Could not evaluate assessment progress.', error);
   }
 }
@@ -345,7 +366,7 @@ async function checkConversationProgress(): Promise<void> {
 async function submitUserMessage(): Promise<void> {
   const content = elements.messageInput.value.trim();
 
-  if (!content || isWaitingForAssistant) {
+  if (!content || isWaitingForAssistant || isEvaluating) {
     return;
   }
 
@@ -376,14 +397,56 @@ async function submitUserMessage(): Promise<void> {
   }
 }
 
-function openEvaluationDialog(): void {
-  const userTurnCount = getUserTurnCount();
+function renderEvaluation(evaluation: AssessmentEvaluationResponse): void {
+  const results = evaluation.dimensions.map((dimension) => {
+    const section = document.createElement('section');
+    section.className = 'evaluation-result';
 
-  elements.evaluationSummary.textContent =
-    `${transcript.length} üzenetből, ${userTurnCount} felhasználói fordulóból álló ` +
-    'beszélgetés küldhető majd értékelésre.';
+    const heading = document.createElement('strong');
+    heading.textContent =
+      `${DIMENSION_LABELS[dimension.dimension] ?? dimension.dimension}: ${dimension.score}/3`;
 
+    const reason = document.createElement('p');
+    reason.textContent = dimension.reason;
+
+    const evidenceList = document.createElement('ul');
+    for (const evidence of dimension.evidence) {
+      const item = document.createElement('li');
+      item.textContent = evidence;
+      evidenceList.append(item);
+    }
+
+    section.append(heading, reason, evidenceList);
+    return section;
+  });
+
+  elements.evaluationSummary.replaceChildren(...results);
+}
+
+async function evaluateConversation(): Promise<void> {
+  if (getUserTurnCount() === 0 || isWaitingForAssistant || isEvaluating) {
+    return;
+  }
+
+  isEvaluating = true;
+  hideProgressNotice();
+  updateConversationState();
+  elements.evaluationSummary.textContent = 'Kiértékelés folyamatban…';
   elements.evaluationDialog.showModal();
+
+  try {
+    const evaluation = await postAssessment<AssessmentEvaluationResponse>(
+      '/api/assessment/evaluate',
+    );
+    renderEvaluation(evaluation);
+  } catch (error) {
+    console.error('Could not evaluate assessment.', error);
+    elements.evaluationSummary.textContent =
+      'A kiértékelés most nem sikerült. Zárd be ezt az ablakot, és próbáld újra.';
+  } finally {
+    isEvaluating = false;
+    updateConversationState();
+  }
 }
 
 function handleComposerSubmit(event: SubmitEvent): void {
@@ -410,7 +473,7 @@ function bindEventListeners(): void {
 
   elements.composer.addEventListener('submit', handleComposerSubmit);
   elements.resetButton.addEventListener('click', resetConversation);
-  elements.evaluateButton.addEventListener('click', openEvaluationDialog);
+  elements.evaluateButton.addEventListener('click', () => void evaluateConversation());
   elements.closeDialogButton.addEventListener('click', () => {
     elements.evaluationDialog.close();
   });
