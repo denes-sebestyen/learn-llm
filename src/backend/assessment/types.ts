@@ -41,10 +41,16 @@ export type AssessmentEvaluationRequest = {
   transcript: ConversationTurn[];
 };
 
+export type EvaluationEvidence = {
+  text: string;
+  impact: 'positive' | 'negative';
+  comment: string;
+};
+
 export type DimensionEvaluation = {
   dimension: EvaluationDimension;
   score: 0 | 1 | 2 | 3;
-  evidence: string[];
+  evidence: EvaluationEvidence[];
   reason: string;
 };
 
