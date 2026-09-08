@@ -32,10 +32,16 @@ type AssessmentProgressResponse = {
   maxTurnsReached: boolean;
 };
 
+type EvaluationEvidence = {
+  text: string;
+  impact: 'positive' | 'negative';
+  comment: string;
+};
+
 type DimensionEvaluation = {
   dimension: string;
   score: number;
-  evidence: string[];
+  evidence: EvaluationEvidence[];
   reason: string;
 };
 
@@ -412,7 +418,8 @@ function renderEvaluation(evaluation: AssessmentEvaluationResponse): void {
     const evidenceList = document.createElement('ul');
     for (const evidence of dimension.evidence) {
       const item = document.createElement('li');
-      item.textContent = evidence;
+      const impact = evidence.impact === 'positive' ? '+' : '−';
+      item.textContent = `${impact} ${evidence.text} — ${evidence.comment}`;
       evidenceList.append(item);
     }
 
