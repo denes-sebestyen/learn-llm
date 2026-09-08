@@ -139,14 +139,12 @@ function parseEvaluationResponse(
     throw new Error('Final evaluator returned invalid dimension scores.');
   }
 
-  return dimensions.map((entry) => ({
-    dimension: entry.dimension as EvaluationDimension,
-    score: entry.score as 0 | 1 | 2 | 3,
-    evidence: (entry.evidenceTurnIds as number[]).map(
+  return dimensions.map(({ evidenceTurnIds, ...dimension }) => ({
+    ...dimension,
+    evidence: (evidenceTurnIds as number[]).map(
       (turnId) => turnsById.get(turnId)!.learnerMessage,
     ),
-    reason: entry.reason as string,
-  }));
+  })) as DimensionEvaluation[];
 }
 
 function hasSufficientEvidence(
@@ -215,7 +213,7 @@ export class AssessmentService {
     const scenario = getScenario(request.scenarioId);
     const focus = scenario.focus ?? [];
     const turns = buildEvaluationTurns(scenario, request.transcript);
-    const messages = buildFinalEvaluationMessages(scenario, request.transcript);
+    const messages = buildFinalEvaluationMessages(scenario, turns);
     const response = await this.modelProvider.generate({
       messages,
       maxTokens: EVALUATION_MAX_TOKENS,
