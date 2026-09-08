@@ -5,11 +5,14 @@ import type { ModelMessage } from '../llm/model-provider';
 export type EvaluationSegment = {
   id: number;
   text: string;
+  start: number;
+  end: number;
 };
 
 export type EvaluationTurn = {
   id: number;
   learnerMessage: {
+    text: string;
     segments: EvaluationSegment[];
   };
   assistantResponse?: string;
@@ -41,12 +44,27 @@ Return valid JSON only, without markdown, in exactly this shape:
 Return exactly one entry for every dimension in scenario.focus and no other dimensions.`;
 
 function segmentLearnerMessage(content: string): EvaluationSegment[] {
-  const parts = content.match(/[^.!?\n]+(?:[.!?]+|\n+|$)/g) ?? [content];
+  const pattern = /[^.!?\n]+(?:[.!?]+|\n+|$)|[.!?]+(?:\n+|$)/g;
+  const segments: EvaluationSegment[] = [];
 
-  return parts
-    .map((text) => text.trim())
-    .filter(Boolean)
-    .map((text, index) => ({ id: index + 1, text }));
+  for (const match of content.matchAll(pattern)) {
+    if (match.index === undefined || match[0].length === 0) {
+      continue;
+    }
+
+    segments.push({
+      id: segments.length + 1,
+      text: match[0],
+      start: match.index,
+      end: match.index + match[0].length,
+    });
+  }
+
+  if (segments.length === 0 && content.length > 0) {
+    return [{ id: 1, text: content, start: 0, end: content.length }];
+  }
+
+  return segments;
 }
 
 export function buildEvaluationTurns(
@@ -68,6 +86,7 @@ export function buildEvaluationTurns(
     turns.push({
       id: message.id,
       learnerMessage: {
+        text: message.content,
         segments: segmentLearnerMessage(message.content),
       },
       ...(response?.role === 'assistant'
