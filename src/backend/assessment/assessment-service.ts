@@ -118,7 +118,6 @@ function parseEvaluationResponse(
     !dimensions.every(
       (entry) =>
         Number.isInteger(entry.score) &&
-        typeof entry.score === 'number' &&
         entry.score >= 0 &&
         entry.score <= 3 &&
         Array.isArray(entry.evidence) &&
