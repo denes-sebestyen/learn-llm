@@ -36,6 +36,22 @@ export type AssessmentProgressResponse = {
   maxTurnsReached: boolean;
 };
 
+export type AssessmentEvaluationRequest = {
+  scenarioId: string;
+  transcript: ConversationTurn[];
+};
+
+export type DimensionEvaluation = {
+  dimension: EvaluationDimension;
+  score: 0 | 1 | 2 | 3;
+  evidence: string[];
+  reason: string;
+};
+
+export type AssessmentEvaluationResponse = {
+  dimensions: DimensionEvaluation[];
+};
+
 export type ScenarioEvaluationPlan = {
   targetBehaviors: string[];
   sufficientWhen: string;
