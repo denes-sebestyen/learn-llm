@@ -180,13 +180,14 @@ function parseEvaluationResponse(
       comment: string;
     }>).map(({ turnId, segmentIds, impact, comment }) => {
       const turn = turnsById.get(turnId)!;
-      const selected = new Set(segmentIds);
+      const selectedSegments = turn.learnerMessage.segments.filter(({ id }) =>
+        segmentIds.includes(id),
+      );
+      const start = Math.min(...selectedSegments.map((segment) => segment.start));
+      const end = Math.max(...selectedSegments.map((segment) => segment.end));
 
       return {
-        text: turn.learnerMessage.segments
-          .filter(({ id }) => selected.has(id))
-          .map(({ text }) => text)
-          .join(' '),
+        text: turn.learnerMessage.text.slice(start, end),
         impact,
         comment,
       };
