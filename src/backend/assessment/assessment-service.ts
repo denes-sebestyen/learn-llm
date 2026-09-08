@@ -1,6 +1,10 @@
 import diagnostic from '../../../assessment/diagnostic.json';
 import { buildConversationMessages } from '../prompts/conversation';
-import { buildFinalEvaluationMessages } from '../prompts/evaluation';
+import {
+  buildEvaluationTurns,
+  buildFinalEvaluationMessages,
+  type EvaluationTurn,
+} from '../prompts/evaluation';
 import { buildProgressEvaluationMessages } from '../prompts/progress';
 import type { ModelProvider } from '../llm/model-provider';
 import {
@@ -99,6 +103,7 @@ function parseProgressResponse(
 function parseEvaluationResponse(
   value: unknown,
   focus: EvaluationDimension[],
+  turns: EvaluationTurn[],
 ): DimensionEvaluation[] {
   const parsed = value as { dimensions?: unknown } | null;
 
@@ -109,21 +114,23 @@ function parseEvaluationResponse(
   const dimensions = parsed.dimensions as Array<{
     dimension?: unknown;
     score?: unknown;
-    evidence?: unknown;
+    evidenceTurnIds?: unknown;
     reason?: unknown;
   }>;
+  const turnsById = new Map(turns.map((turn) => [turn.id, turn]));
 
   if (
     !hasExpectedDimensions(dimensions, focus) ||
     !dimensions.every(
       (entry) =>
+        typeof entry.score === 'number' &&
         Number.isInteger(entry.score) &&
         entry.score >= 0 &&
         entry.score <= 3 &&
-        Array.isArray(entry.evidence) &&
-        entry.evidence.length > 0 &&
-        entry.evidence.every(
-          (evidence) => typeof evidence === 'string' && evidence.trim().length > 0,
+        Array.isArray(entry.evidenceTurnIds) &&
+        entry.evidenceTurnIds.length > 0 &&
+        entry.evidenceTurnIds.every(
+          (turnId) => typeof turnId === 'number' && turnsById.has(turnId),
         ) &&
         typeof entry.reason === 'string' &&
         entry.reason.trim().length > 0,
@@ -132,7 +139,12 @@ function parseEvaluationResponse(
     throw new Error('Final evaluator returned invalid dimension scores.');
   }
 
-  return dimensions as DimensionEvaluation[];
+  return dimensions.map(({ evidenceTurnIds, ...dimension }) => ({
+    ...dimension,
+    evidence: (evidenceTurnIds as number[]).map(
+      (turnId) => turnsById.get(turnId)!.learnerMessage,
+    ),
+  })) as DimensionEvaluation[];
 }
 
 function hasSufficientEvidence(
@@ -200,7 +212,8 @@ export class AssessmentService {
   ): Promise<AssessmentEvaluationResponse> {
     const scenario = getScenario(request.scenarioId);
     const focus = scenario.focus ?? [];
-    const messages = buildFinalEvaluationMessages(scenario, request.transcript);
+    const turns = buildEvaluationTurns(scenario, request.transcript);
+    const messages = buildFinalEvaluationMessages(scenario, turns);
     const response = await this.modelProvider.generate({
       messages,
       maxTokens: EVALUATION_MAX_TOKENS,
@@ -212,7 +225,7 @@ export class AssessmentService {
       : JSON.parse(response.content);
 
     return {
-      dimensions: parseEvaluationResponse(evaluation, focus),
+      dimensions: parseEvaluationResponse(evaluation, focus, turns),
     };
   }
 }

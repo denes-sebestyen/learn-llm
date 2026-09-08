@@ -2,6 +2,12 @@ import type { DiagnosticScenario, ConversationTurn } from '../assessment/types';
 import { getAssessmentDimension } from '../assessment/dimensions';
 import type { ModelMessage } from '../llm/model-provider';
 
+export type EvaluationTurn = {
+  id: number;
+  learnerMessage: string;
+  assistantResponse?: string;
+};
+
 const SYSTEM_PROMPT = `You are the final evaluator for an LLM-use diagnostic assessment.
 
 Your task is to evaluate the learner's demonstrated behavior on each requested evaluation dimension. Unlike the progress evaluator, you are judging performance quality, not whether enough evidence exists.
@@ -14,25 +20,51 @@ Use this four-level scale consistently:
 
 Each requested dimension includes a definition describing the skill and scoringGuidance describing how to judge performance. Use both. Do not use or infer progress observability thresholds.
 
-Base every score on concrete learner behavior in the transcript. Contradictions and changes in strategy are valid evidence and may affect the score. Do not reward verbosity, stylistic polish, or agreement with the assistant. Judge the learner's decisions and behavior in context.
+The conversation is provided as interaction turns. Each turn contains a learnerMessage and, when available, the assistantResponse to it. Only learnerMessage is evidence about the learner. assistantResponse is context that may be necessary to interpret learner behavior, but is never evidence of learner skill.
 
-Only the learner's own messages written after the initial transcript are evidence about the learner. Initial transcript turns and assistant messages are context that may be necessary to interpret learner behavior, but are not themselves evidence of learner skill.
+Base every score on concrete learner behavior in the turns. Contradictions and changes in strategy are valid evidence and may affect the score. Do not reward verbosity, stylistic polish, or agreement with the assistant. Judge the learner's decisions and behavior in context.
 
 Use scenario.evaluatorNotes and scenario.evaluationPlan as scenario-specific context. They can clarify which behaviors are relevant, but they do not override the shared dimension definition or scoring guidance.
 
-For each dimension, provide one integer score from 0 to 3, one or more short evidence statements grounded in learner behavior, and a concise reason explaining how that evidence maps to the score. Do not recommend learning modules or decide product behavior.
+For each dimension, provide one integer score from 0 to 3, one or more evidenceTurnIds referring to turns whose learnerMessage supports the judgment, and a concise reason explaining how that evidence maps to the score. Do not quote evidence text. Do not recommend learning modules or decide product behavior.
 
 Return valid JSON only, without markdown, in exactly this shape:
-{"dimensions":[{"dimension":string,"score":number,"evidence":[string],"reason":string}]}
+{"dimensions":[{"dimension":string,"score":number,"evidenceTurnIds":[number],"reason":string}]}
 
 Return exactly one entry for every dimension in scenario.focus and no other dimensions.`;
 
-export function buildFinalEvaluationMessages(
+export function buildEvaluationTurns(
   scenario: DiagnosticScenario,
   transcript: ConversationTurn[],
-): ModelMessage[] {
+): EvaluationTurn[] {
   const initialTurnCount = scenario.initialTranscript?.length ?? 0;
-  const learnerTranscript = transcript.slice(initialTurnCount);
+  const conversation = transcript.slice(initialTurnCount);
+  const turns: EvaluationTurn[] = [];
+
+  for (let index = 0; index < conversation.length; index += 1) {
+    const message = conversation[index];
+
+    if (message.role !== 'user') {
+      continue;
+    }
+
+    const response = conversation[index + 1];
+    turns.push({
+      id: message.id,
+      learnerMessage: message.content,
+      ...(response?.role === 'assistant'
+        ? { assistantResponse: response.content }
+        : {}),
+    });
+  }
+
+  return turns;
+}
+
+export function buildFinalEvaluationMessages(
+  scenario: DiagnosticScenario,
+  turns: EvaluationTurn[],
+): ModelMessage[] {
   const focus = scenario.focus ?? [];
   const dimensions = focus.map((dimension) => {
     const { definition, scoringGuidance } = getAssessmentDimension(dimension);
@@ -58,7 +90,7 @@ export function buildFinalEvaluationMessages(
         },
         dimensions,
         initialTranscript: scenario.initialTranscript ?? [],
-        learnerTranscript,
+        turns,
       }),
     },
   ];
