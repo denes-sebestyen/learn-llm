@@ -63,7 +63,7 @@ export function buildEvaluationTurns(
 
 export function buildFinalEvaluationMessages(
   scenario: DiagnosticScenario,
-  transcript: ConversationTurn[],
+  turns: EvaluationTurn[],
 ): ModelMessage[] {
   const focus = scenario.focus ?? [];
   const dimensions = focus.map((dimension) => {
@@ -90,7 +90,7 @@ export function buildFinalEvaluationMessages(
         },
         dimensions,
         initialTranscript: scenario.initialTranscript ?? [],
-        turns: buildEvaluationTurns(scenario, transcript),
+        turns,
       }),
     },
   ];
