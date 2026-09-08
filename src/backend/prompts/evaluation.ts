@@ -44,24 +44,45 @@ Return valid JSON only, without markdown, in exactly this shape:
 Return exactly one entry for every dimension in scenario.focus and no other dimensions.`;
 
 function segmentLearnerMessage(content: string): EvaluationSegment[] {
-  const pattern = /[^.!?\n]+(?:[.!?]+|\n+|$)|[.!?]+(?:\n+|$)/g;
-  const segments: EvaluationSegment[] = [];
+  const boundaryPattern = /[^.!?\n]+(?:[.!?]+|\n+|$)|[.!?]+(?:\n+|$)/g;
+  const matches = [...content.matchAll(boundaryPattern)];
 
-  for (const match of content.matchAll(pattern)) {
-    if (match.index === undefined || match[0].length === 0) {
+  if (content.length === 0) {
+    return [];
+  }
+
+  if (matches.length === 0) {
+    return [{ id: 1, text: content, start: 0, end: content.length }];
+  }
+
+  const segments: EvaluationSegment[] = [];
+  let start = 0;
+
+  for (let index = 0; index < matches.length; index += 1) {
+    const match = matches[index];
+    const nextMatch = matches[index + 1];
+    const end = nextMatch?.index ?? content.length;
+
+    if (end <= start) {
       continue;
     }
 
     segments.push({
       id: segments.length + 1,
-      text: match[0],
-      start: match.index,
-      end: match.index + match[0].length,
+      text: content.slice(start, end),
+      start,
+      end,
     });
+    start = end;
   }
 
-  if (segments.length === 0 && content.length > 0) {
-    return [{ id: 1, text: content, start: 0, end: content.length }];
+  if (start < content.length) {
+    segments.push({
+      id: segments.length + 1,
+      text: content.slice(start),
+      start,
+      end: content.length,
+    });
   }
 
   return segments;
