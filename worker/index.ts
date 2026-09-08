@@ -1,5 +1,6 @@
 import { AssessmentService } from '../src/backend/assessment/assessment-service';
 import type {
+  AssessmentEvaluationRequest,
   AssessmentMessageRequest,
   AssessmentProgressRequest,
 } from '../src/backend/assessment/types';
@@ -55,9 +56,12 @@ function isConversationTurn(value: unknown): boolean {
   );
 }
 
-function isAssessmentRequest(
-  value: unknown,
-): value is AssessmentMessageRequest | AssessmentProgressRequest {
+type AssessmentRequest =
+  | AssessmentMessageRequest
+  | AssessmentProgressRequest
+  | AssessmentEvaluationRequest;
+
+function isAssessmentRequest(value: unknown): value is AssessmentRequest {
   if (!value || typeof value !== 'object') {
     return false;
   }
@@ -73,7 +77,7 @@ function isAssessmentRequest(
 }
 
 async function readAssessmentRequest(request: Request): Promise<
-  | { body: AssessmentMessageRequest | AssessmentProgressRequest }
+  | { body: AssessmentRequest }
   | { response: Response }
 > {
   let body: unknown;
@@ -135,21 +139,44 @@ async function handleAssessmentProgress(
   }
 }
 
+async function handleAssessmentEvaluation(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const parsed = await readAssessmentRequest(request);
+
+  if ('response' in parsed) {
+    return parsed.response;
+  }
+
+  try {
+    const provider = new CloudflareAIProvider(env.AI);
+    const service = new AssessmentService(provider);
+    const response = await service.evaluate(parsed.body);
+
+    return json(response);
+  } catch (error) {
+    logError('Final assessment evaluation failed', error);
+    return json({ error: 'Could not evaluate the assessment.' }, 500);
+  }
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const assessmentHandlers: Record<string, (request: Request, env: Env) => Promise<Response>> = {
+      '/api/assessment/message': handleAssessmentMessage,
+      '/api/assessment/progress': handleAssessmentProgress,
+      '/api/assessment/evaluate': handleAssessmentEvaluation,
+    };
+    const handler = assessmentHandlers[url.pathname];
 
-    if (
-      url.pathname === '/api/assessment/message' ||
-      url.pathname === '/api/assessment/progress'
-    ) {
+    if (handler) {
       if (request.method !== 'POST') {
         return json({ error: 'Method not allowed.' }, 405);
       }
 
-      return url.pathname === '/api/assessment/message'
-        ? handleAssessmentMessage(request, env)
-        : handleAssessmentProgress(request, env);
+      return handler(request, env);
     }
 
     return env.ASSETS.fetch(request);
