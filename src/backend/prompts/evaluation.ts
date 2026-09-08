@@ -2,9 +2,16 @@ import type { DiagnosticScenario, ConversationTurn } from '../assessment/types';
 import { getAssessmentDimension } from '../assessment/dimensions';
 import type { ModelMessage } from '../llm/model-provider';
 
+export type EvaluationSegment = {
+  id: number;
+  text: string;
+};
+
 export type EvaluationTurn = {
   id: number;
-  learnerMessage: string;
+  learnerMessage: {
+    segments: EvaluationSegment[];
+  };
   assistantResponse?: string;
 };
 
@@ -20,18 +27,27 @@ Use this four-level scale consistently:
 
 Each requested dimension includes a definition describing the skill and scoringGuidance describing how to judge performance. Use both. Do not use or infer progress observability thresholds.
 
-The conversation is provided as interaction turns. Each turn contains a learnerMessage and, when available, the assistantResponse to it. Only learnerMessage is evidence about the learner. assistantResponse is context that may be necessary to interpret learner behavior, but is never evidence of learner skill.
+The conversation is provided as interaction turns. Each turn contains a learnerMessage split into numbered segments and, when available, the assistantResponse to it. Only learnerMessage segments are evidence about the learner. assistantResponse is context that may be necessary to interpret learner behavior, but is never evidence of learner skill.
 
-Base every score on concrete learner behavior in the turns. Contradictions and changes in strategy are valid evidence and may affect the score. Do not reward verbosity, stylistic polish, or agreement with the assistant. Judge the learner's decisions and behavior in context.
+Base every score on concrete learner behavior in the turns. Select only the learner segments that materially contribute to the score; do not cite every segment merely because it is available. For each evidence item, identify whether it affects the judgment positively or negatively and explain specifically what that evidence demonstrates for the current dimension. Contradictions and changes in strategy are valid evidence and may affect the score. Do not reward verbosity, stylistic polish, or agreement with the assistant. Judge the learner's decisions and behavior in context.
 
 Use scenario.evaluatorNotes and scenario.evaluationPlan as scenario-specific context. They can clarify which behaviors are relevant, but they do not override the shared dimension definition or scoring guidance.
 
-For each dimension, provide one integer score from 0 to 3, one or more evidenceTurnIds referring to turns whose learnerMessage supports the judgment, and a concise reason explaining how that evidence maps to the score. Do not quote evidence text. Do not recommend learning modules or decide product behavior.
+For each dimension, provide one integer score from 0 to 3, one or more evidence items, and a concise overall reason explaining the score. Each evidence item must contain a turnId, one or more segmentIds from that turn, an impact of either \"positive\" or \"negative\", and a concise comment explaining how those specific segments affect the judgment. Do not quote or reproduce evidence text. Do not recommend learning modules or decide product behavior.
 
 Return valid JSON only, without markdown, in exactly this shape:
-{"dimensions":[{"dimension":string,"score":number,"evidenceTurnIds":[number],"reason":string}]}
+{"dimensions":[{"dimension":string,"score":number,"evidence":[{"turnId":number,"segmentIds":[number],"impact":"positive"|"negative","comment":string}],"reason":string}]}
 
 Return exactly one entry for every dimension in scenario.focus and no other dimensions.`;
+
+function segmentLearnerMessage(content: string): EvaluationSegment[] {
+  const parts = content.match(/[^.!?\n]+(?:[.!?]+|\n+|$)/g) ?? [content];
+
+  return parts
+    .map((text) => text.trim())
+    .filter(Boolean)
+    .map((text, index) => ({ id: index + 1, text }));
+}
 
 export function buildEvaluationTurns(
   scenario: DiagnosticScenario,
@@ -51,7 +67,9 @@ export function buildEvaluationTurns(
     const response = conversation[index + 1];
     turns.push({
       id: message.id,
-      learnerMessage: message.content,
+      learnerMessage: {
+        segments: segmentLearnerMessage(message.content),
+      },
       ...(response?.role === 'assistant'
         ? { assistantResponse: response.content }
         : {}),
