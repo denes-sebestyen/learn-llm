@@ -113,6 +113,7 @@ function isValidEvidence(
 ): boolean {
   if (
     typeof evidence.turnId !== 'number' ||
+    !Number.isInteger(evidence.turnId) ||
     !Array.isArray(evidence.segmentIds) ||
     evidence.segmentIds.length === 0 ||
     (evidence.impact !== 'positive' && evidence.impact !== 'negative') ||
@@ -124,10 +125,46 @@ function isValidEvidence(
 
   const turn = turnsById.get(evidence.turnId);
   const segmentIds = new Set(turn?.learnerMessage.segments.map(({ id }) => id));
+  const selectedSegmentIds = evidence.segmentIds as unknown[];
 
-  return Boolean(turn) && evidence.segmentIds.every(
-    (segmentId) => typeof segmentId === 'number' && segmentIds.has(segmentId),
+  return Boolean(turn) &&
+    selectedSegmentIds.every(
+      (segmentId) =>
+        typeof segmentId === 'number' &&
+        Number.isInteger(segmentId) &&
+        segmentIds.has(segmentId),
+    ) &&
+    new Set(selectedSegmentIds).size === selectedSegmentIds.length;
+}
+
+function resolveEvidenceText(
+  turn: EvaluationTurn,
+  segmentIds: number[],
+): string {
+  const selectedIds = new Set(segmentIds);
+  const selectedSegments = turn.learnerMessage.segments.filter(({ id }) =>
+    selectedIds.has(id),
   );
+  const parts: string[] = [];
+  let groupStart = selectedSegments[0].start;
+  let groupEnd = selectedSegments[0].end;
+  let previousId = selectedSegments[0].id;
+
+  for (const segment of selectedSegments.slice(1)) {
+    if (segment.id === previousId + 1) {
+      groupEnd = segment.end;
+    } else {
+      parts.push(turn.learnerMessage.text.slice(groupStart, groupEnd));
+      parts.push('[…]');
+      groupStart = segment.start;
+      groupEnd = segment.end;
+    }
+
+    previousId = segment.id;
+  }
+
+  parts.push(turn.learnerMessage.text.slice(groupStart, groupEnd));
+  return parts.join('');
 }
 
 function parseEvaluationResponse(
@@ -180,14 +217,9 @@ function parseEvaluationResponse(
       comment: string;
     }>).map(({ turnId, segmentIds, impact, comment }) => {
       const turn = turnsById.get(turnId)!;
-      const selectedSegments = turn.learnerMessage.segments.filter(({ id }) =>
-        segmentIds.includes(id),
-      );
-      const start = Math.min(...selectedSegments.map((segment) => segment.start));
-      const end = Math.max(...selectedSegments.map((segment) => segment.end));
 
       return {
-        text: turn.learnerMessage.text.slice(start, end),
+        text: resolveEvidenceText(turn, segmentIds),
         impact,
         comment,
       };
