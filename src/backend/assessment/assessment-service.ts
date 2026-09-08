@@ -100,6 +100,36 @@ function parseProgressResponse(
   return dimensions as DimensionObservability[];
 }
 
+type RawEvaluationEvidence = {
+  turnId?: unknown;
+  segmentIds?: unknown;
+  impact?: unknown;
+  comment?: unknown;
+};
+
+function isValidEvidence(
+  evidence: RawEvaluationEvidence,
+  turnsById: Map<number, EvaluationTurn>,
+): boolean {
+  if (
+    typeof evidence.turnId !== 'number' ||
+    !Array.isArray(evidence.segmentIds) ||
+    evidence.segmentIds.length === 0 ||
+    (evidence.impact !== 'positive' && evidence.impact !== 'negative') ||
+    typeof evidence.comment !== 'string' ||
+    evidence.comment.trim().length === 0
+  ) {
+    return false;
+  }
+
+  const turn = turnsById.get(evidence.turnId);
+  const segmentIds = new Set(turn?.learnerMessage.segments.map(({ id }) => id));
+
+  return Boolean(turn) && evidence.segmentIds.every(
+    (segmentId) => typeof segmentId === 'number' && segmentIds.has(segmentId),
+  );
+}
+
 function parseEvaluationResponse(
   value: unknown,
   focus: EvaluationDimension[],
@@ -114,7 +144,7 @@ function parseEvaluationResponse(
   const dimensions = parsed.dimensions as Array<{
     dimension?: unknown;
     score?: unknown;
-    evidenceTurnIds?: unknown;
+    evidence?: unknown;
     reason?: unknown;
   }>;
   const turnsById = new Map(turns.map((turn) => [turn.id, turn]));
@@ -127,10 +157,12 @@ function parseEvaluationResponse(
         Number.isInteger(entry.score) &&
         entry.score >= 0 &&
         entry.score <= 3 &&
-        Array.isArray(entry.evidenceTurnIds) &&
-        entry.evidenceTurnIds.length > 0 &&
-        entry.evidenceTurnIds.every(
-          (turnId) => typeof turnId === 'number' && turnsById.has(turnId),
+        Array.isArray(entry.evidence) &&
+        entry.evidence.length > 0 &&
+        entry.evidence.every((evidence) =>
+          evidence &&
+          typeof evidence === 'object' &&
+          isValidEvidence(evidence as RawEvaluationEvidence, turnsById)
         ) &&
         typeof entry.reason === 'string' &&
         entry.reason.trim().length > 0,
@@ -139,11 +171,26 @@ function parseEvaluationResponse(
     throw new Error('Final evaluator returned invalid dimension scores.');
   }
 
-  return dimensions.map(({ evidenceTurnIds, ...dimension }) => ({
+  return dimensions.map(({ evidence, ...dimension }) => ({
     ...dimension,
-    evidence: (evidenceTurnIds as number[]).map(
-      (turnId) => turnsById.get(turnId)!.learnerMessage,
-    ),
+    evidence: (evidence as Array<{
+      turnId: number;
+      segmentIds: number[];
+      impact: 'positive' | 'negative';
+      comment: string;
+    }>).map(({ turnId, segmentIds, impact, comment }) => {
+      const turn = turnsById.get(turnId)!;
+      const selected = new Set(segmentIds);
+
+      return {
+        text: turn.learnerMessage.segments
+          .filter(({ id }) => selected.has(id))
+          .map(({ text }) => text)
+          .join(' '),
+        impact,
+        comment,
+      };
+    }),
   })) as DimensionEvaluation[];
 }
 
