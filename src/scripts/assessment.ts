@@ -400,7 +400,7 @@ async function submitUserMessage(): Promise<void> {
 function renderEvaluation(evaluation: AssessmentEvaluationResponse): void {
   const results = evaluation.dimensions.map((dimension) => {
     const section = document.createElement('section');
-    section.className = 'mock-result';
+    section.className = 'evaluation-result';
 
     const heading = document.createElement('strong');
     heading.textContent =
