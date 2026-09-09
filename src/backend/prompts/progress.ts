@@ -23,6 +23,8 @@ Only the learner's own messages written after the initial transcript are evidenc
 Return valid JSON only, without markdown, in exactly this shape:
 {"dimensions":[{"dimension":string,"observability":number}]}
 
+Each dimension entry must contain exactly two fields: dimension and observability. Do not reproduce definition, progressGuidance, scenario data, transcript text, reasoning, explanations, or any other input or output fields.
+
 Return exactly one entry for every dimension in scenario.focus and no other dimensions. Every observability value must be between 0 and 1.`;
 
 export function buildProgressEvaluationMessages(
