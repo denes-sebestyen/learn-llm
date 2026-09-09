@@ -6,7 +6,7 @@ import {
   type EvaluationTurn,
 } from '../prompts/evaluation';
 import { buildProgressEvaluationMessages } from '../prompts/progress';
-import type { ModelProvider } from '../llm/model-provider';
+import type { ModelProvider, ModelResponse } from '../llm/model-provider';
 import {
   getAssessmentDimension,
   isEvaluationDimension,
@@ -29,6 +29,7 @@ const MAX_LEARNER_TURNS = 6;
 const CONVERSATION_MAX_TOKENS = 1024;
 const PROGRESS_MAX_TOKENS = 256;
 const EVALUATION_MAX_TOKENS = 1024;
+const INVALID_JSON_LOG_LIMIT = 1000;
 
 function getScenario(scenarioId: string): DiagnosticScenario {
   const scenario = scenarios.find((candidate) => candidate.id === scenarioId);
@@ -68,6 +69,26 @@ function hasExpectedDimensions(
         focus.includes(entry.dimension),
     ) &&
     new Set(dimensions.map((entry) => entry.dimension)).size === focus.length;
+}
+
+function parseStructuredModelResponse(
+  response: ModelResponse,
+  evaluator: 'progress' | 'final',
+): unknown {
+  if (response.structured !== undefined) {
+    return response.structured;
+  }
+
+  try {
+    return JSON.parse(response.content);
+  } catch (error) {
+    console.error(`Failed to parse ${evaluator} evaluator JSON response.`, {
+      contentLength: response.content.length,
+      content: response.content.slice(0, INVALID_JSON_LOG_LIMIT),
+      truncatedInLog: response.content.length > INVALID_JSON_LOG_LIMIT,
+    });
+    throw error;
+  }
 }
 
 function parseProgressResponse(
@@ -275,9 +296,7 @@ export class AssessmentService {
       responseFormat: { type: 'json_object' },
     });
 
-    const progress = response.structured !== undefined
-      ? response.structured
-      : JSON.parse(response.content);
+    const progress = parseStructuredModelResponse(response, 'progress');
     const dimensions = parseProgressResponse(progress, focus);
 
     return {
@@ -300,9 +319,7 @@ export class AssessmentService {
       responseFormat: { type: 'json_object' },
     });
 
-    const evaluation = response.structured !== undefined
-      ? response.structured
-      : JSON.parse(response.content);
+    const evaluation = parseStructuredModelResponse(response, 'final');
 
     return {
       dimensions: parseEvaluationResponse(evaluation, focus, turns),
