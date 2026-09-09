@@ -84,7 +84,7 @@ function parseStructuredModelResponse(
   } catch (error) {
     console.error(`Failed to parse ${evaluator} evaluator JSON response.`, {
       contentLength: response.content.length,
-      content: response.content.slice(0, INVALID_JSON_LOG_LIMIT),
+      contentTail: response.content.slice(-INVALID_JSON_LOG_LIMIT),
       truncatedInLog: response.content.length > INVALID_JSON_LOG_LIMIT,
     });
     throw error;
