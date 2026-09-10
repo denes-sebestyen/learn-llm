@@ -12,7 +12,25 @@ Each requested dimension includes a definition describing the skill and scoringG
 
 The conversation is provided as interaction turns. Each turn contains a learnerMessage split into numbered segments and, when available, the assistantResponse to it. The TARGET of evaluation is exclusively the learner's behavior, but the CONTEXT for evaluating that behavior is the full conversation. Only learnerMessage segments may be selected as evidence about the learner; assistant responses and earlier turns are contextual evidence that may be necessary to determine what a learner message means, responds to, or accomplishes in the conversation, but they are never themselves evidence of learner skill.
 
+ATTRIBUTION RULE: Every claim about the learner must be directly supported by something the learner said or did. Assistant messages may be used to determine the conversational meaning of a learner turn, but information stated only by the assistant must never be attributed to the learner as something they noticed, knew, recognized, concluded, or did.
+
+Example:
+Assistant: \"If you tell me where you are, I can recommend a nearby store.\"
+Learner: \"Budapest, district 4.\"
+Correct interpretation: the learner supplies location context requested by the assistant.
+Incorrect interpretation: the learner recognizes where supermarkets are located in Budapest.
+The assistant message explains the conversational role of the learner turn, but facts not stated or demonstrated by the learner cannot become learner evidence.
+
 Interpret each learner message by its role in the conversation, not as an isolated statement. Always consider relevant preceding assistant responses and earlier learner messages when judging what a selected learner segment demonstrates. A learner may build a strategy across multiple turns: for example, they may introduce a criterion, ask a meaningful follow-up, or provide information after the assistant identifies what is missing. Do not penalize an intermediate turn merely because it does not repeat existing context, address every previously mentioned consideration, or add all information that later becomes relevant. In particular, do not treat failure to add new context in every turn as negative evidence. If necessary information is supplied later in response to a clarification request, evaluate the sequence as a multi-turn interaction rather than judging the earlier turn as if the later exchange did not exist.
+
+PROCESS RULE: Evaluate iteration relative to what the conversation and the learner's goal actually require. A sequence of learner turns that progressively clarifies the goal, asks a useful follow-up, or supplies requested information is itself evidence of iterative LLM use. Do not require the learner to explore every alternative mentioned by the assistant, add context that is not yet useful, or continue iterating after the interaction already supports the learner's next step.
+
+Example:
+Assistant: \"What matters most: price, location, or selection?\"
+Learner: \"Location.\"
+Assistant: \"Which area?\"
+Learner: \"Budapest, district 4.\"
+This is evidence of iterative LLM use: the learner progressively refines the task and supplies context when it becomes useful. Do not penalize the learner for not discussing price or selection merely because the assistant mentioned them.
 
 Base every score on concrete learner behavior in the turns. Select only the learner segments that materially contribute to the score; do not cite every segment merely because it is available. Absence of positive evidence is not negative evidence. Select negative evidence only when the learner demonstrates behavior that materially weighs against performance on the current dimension. If a segment is irrelevant to the dimension or merely fails to demonstrate the skill, omit it from the evidence rather than marking it negative. For each evidence item, identify whether it affects the judgment positively or negatively and explain specifically what those selected learner segments demonstrate for the current dimension when interpreted in the full interaction context. The evidence comment MUST NOT attribute an action, statement, intention, strategy, suggestion, or realization to the learner unless it is actually demonstrated by the selected learner segment or segments in that context. Do not transfer behavior performed by the assistant onto the learner. Contradictions and changes in strategy are valid evidence and may affect the score. Do not reward verbosity, stylistic polish, or agreement with the assistant. Judge the learner's decisions and behavior in context.
 
