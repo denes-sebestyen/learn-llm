@@ -1,85 +1,18 @@
-type Scenario = {
-  id: string;
-  title: string;
-  prompt: string;
-  initialTranscript?: Turn[];
-  modules: number[];
-};
-
-type TurnRole = 'user' | 'assistant';
-
-type Turn = {
-  id: number;
-  role: TurnRole;
-  content: string;
-};
-
-type AssessmentMessageResponse = {
-  turn: {
-    role: 'assistant';
-    content: string;
-  };
-};
-
-type DimensionObservability = {
-  dimension: string;
-  observability: number;
-};
-
-type AssessmentProgressResponse = {
-  evidenceSufficient: boolean;
-  dimensions: DimensionObservability[];
-  maxTurnsReached: boolean;
-};
-
-type EvaluationEvidence = {
-  text: string;
-  impact: 'positive' | 'negative';
-  comment: string;
-};
-
-type DimensionEvaluation = {
-  dimension: string;
-  score: number;
-  evidence: EvaluationEvidence[];
-  reason: string;
-};
-
-type AssessmentEvaluationResponse = {
-  dimensions: DimensionEvaluation[];
-};
-
-type ProgressHistoryEntry = {
-  learnerTurn: number;
-  result: AssessmentProgressResponse;
-};
-
-type TranscriptExport = {
-  scenarioId: string;
-  transcript: Turn[];
-};
-
-type DebugReport = TranscriptExport & {
-  debugReportVersion: 1;
-  progressEvaluations: ProgressHistoryEntry[];
-};
-
-const DIMENSION_LABELS: Record<string, string> = {
-  recognition: 'Felismerés',
-  risk_assessment: 'Kockázatértékelés',
-  verification_strategy: 'Ellenőrzési stratégia',
-  llm_usage_strategy: 'LLM-használati stratégia',
-};
-
-function getElement<T extends HTMLElement>(id: string): T {
-  const element = document.getElementById(id);
-
-  if (!element) {
-    throw new Error(`Missing required element: #${id}`);
-  }
-
-  return element as T;
-}
+import { createDebugPanel } from './assessment/debug-panel';
+import { elements, getElement } from './assessment/dom';
+import { renderEvaluation } from './assessment/evaluation-view';
+import { parseTranscriptExport } from './assessment/transcript';
+import type {
+  AssessmentEvaluationResponse,
+  AssessmentMessageResponse,
+  AssessmentProgressResponse,
+  DebugReport,
+  ProgressHistoryEntry,
+  Scenario,
+  TranscriptExport,
+  Turn,
+  TurnRole,
+} from './assessment/types';
 
 function readScenarios(): Scenario[] {
   const scenarioData = getElement<HTMLScriptElement>('scenario-data');
@@ -88,23 +21,6 @@ function readScenarios(): Scenario[] {
 
 const scenarios = readScenarios();
 const debugMode = new URLSearchParams(window.location.search).has('debug');
-
-const elements = {
-  scenarioSelect: getElement<HTMLSelectElement>('scenario-select'),
-  scenarioTitle: getElement<HTMLElement>('scenario-title'),
-  scenarioPrompt: getElement<HTMLElement>('scenario-prompt'),
-  moduleTags: getElement<HTMLElement>('module-tags'),
-  messages: getElement<HTMLElement>('messages'),
-  emptyState: getElement<HTMLElement>('empty-state'),
-  composer: getElement<HTMLFormElement>('composer'),
-  messageInput: getElement<HTMLTextAreaElement>('message-input'),
-  resetButton: getElement<HTMLButtonElement>('reset-button'),
-  evaluateButton: getElement<HTMLButtonElement>('evaluate-button'),
-  turnCounter: getElement<HTMLElement>('turn-counter'),
-  evaluationDialog: getElement<HTMLDialogElement>('evaluation-dialog'),
-  evaluationSummary: getElement<HTMLElement>('evaluation-summary'),
-  closeDialogButton: getElement<HTMLButtonElement>('close-dialog'),
-};
 
 let transcript: Turn[] = [];
 let progressHistory: ProgressHistoryEntry[] = [];
@@ -420,33 +336,6 @@ async function submitUserMessage(): Promise<void> {
   }
 }
 
-function renderEvaluation(evaluation: AssessmentEvaluationResponse): void {
-  const results = evaluation.dimensions.map((dimension) => {
-    const section = document.createElement('section');
-    section.className = 'evaluation-result';
-
-    const heading = document.createElement('strong');
-    heading.textContent =
-      `${DIMENSION_LABELS[dimension.dimension] ?? dimension.dimension}: ${dimension.score}/3`;
-
-    const reason = document.createElement('p');
-    reason.textContent = dimension.reason;
-
-    const evidenceList = document.createElement('ul');
-    for (const evidence of dimension.evidence) {
-      const item = document.createElement('li');
-      const impact = evidence.impact === 'positive' ? '+' : '−';
-      item.textContent = `${impact} ${evidence.text} — ${evidence.comment}`;
-      evidenceList.append(item);
-    }
-
-    section.append(heading, reason, evidenceList);
-    return section;
-  });
-
-  elements.evaluationSummary.replaceChildren(...results);
-}
-
 async function evaluateConversation(): Promise<void> {
   if (getUserTurnCount() === 0 || isWaitingForAssistant || isEvaluating) {
     return;
@@ -462,7 +351,7 @@ async function evaluateConversation(): Promise<void> {
     const evaluation = await postAssessment<AssessmentEvaluationResponse>(
       '/api/assessment/evaluate',
     );
-    renderEvaluation(evaluation);
+    renderEvaluation(elements.evaluationSummary, evaluation);
   } catch (error) {
     console.error('Could not evaluate assessment.', error);
     elements.evaluationSummary.textContent =
@@ -471,56 +360,6 @@ async function evaluateConversation(): Promise<void> {
     isEvaluating = false;
     updateConversationState();
   }
-}
-
-function downloadJson(filename: string, value: unknown): void {
-  const blob = new Blob([JSON.stringify(value, null, 2)], {
-    type: 'application/json',
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
-}
-
-function isTurn(value: unknown): value is Turn {
-  if (!value || typeof value !== 'object') {
-    return false;
-  }
-
-  const candidate = value as Partial<Turn>;
-  return Number.isInteger(candidate.id) &&
-    typeof candidate.id === 'number' && candidate.id > 0 &&
-    (candidate.role === 'user' || candidate.role === 'assistant') &&
-    typeof candidate.content === 'string';
-}
-
-function parseTranscriptExport(value: unknown): TranscriptExport {
-  if (!value || typeof value !== 'object') {
-    throw new Error('Az importált adat nem objektum.');
-  }
-
-  const candidate = value as Partial<TranscriptExport>;
-  if (
-    typeof candidate.scenarioId !== 'string' ||
-    !scenarios.some((scenario) => scenario.id === candidate.scenarioId) ||
-    !Array.isArray(candidate.transcript) ||
-    !candidate.transcript.every(isTurn)
-  ) {
-    throw new Error('Érvénytelen transcript export.');
-  }
-
-  const ids = candidate.transcript.map((turn) => turn.id);
-  if (new Set(ids).size !== ids.length) {
-    throw new Error('A transcript turn ID-k nem egyediek.');
-  }
-
-  return {
-    scenarioId: candidate.scenarioId,
-    transcript: candidate.transcript.map((turn) => ({ ...turn })),
-  };
 }
 
 function createTranscriptExport(): TranscriptExport {
@@ -544,116 +383,13 @@ function loadTranscriptExport(imported: TranscriptExport): void {
   updateConversationState();
 }
 
-function createDebugPanel(): void {
-  if (!debugMode) {
-    return;
-  }
-
-  const scenarioPanel = document.querySelector('.scenario-panel');
-  if (!scenarioPanel) {
-    return;
-  }
-
-  const panel = document.createElement('details');
-  panel.className = 'helper';
-  const summary = document.createElement('summary');
-  summary.textContent = 'Transcript debug';
-
-  const transcriptText = document.createElement('textarea');
-  transcriptText.rows = 8;
-  transcriptText.placeholder = 'Transcript JSON…';
-
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = 'application/json,.json';
-  fileInput.hidden = true;
-
-  const status = document.createElement('p');
-  status.setAttribute('role', 'status');
-
-  const actions = document.createElement('div');
-  actions.className = 'conversation-actions';
-
-  const importButton = document.createElement('button');
-  importButton.type = 'button';
-  importButton.className = 'button';
-  importButton.textContent = 'Textarea import';
-  importButton.addEventListener('click', () => {
-    try {
-      const imported = parseTranscriptExport(JSON.parse(transcriptText.value));
-      loadTranscriptExport(imported);
-      status.textContent = 'Transcript betöltve a textarea tartalmából.';
-    } catch (error) {
-      status.textContent = error instanceof Error ? error.message : 'Sikertelen import.';
-    }
-  });
-
-  const textExportButton = document.createElement('button');
-  textExportButton.type = 'button';
-  textExportButton.className = 'button';
-  textExportButton.textContent = 'Textarea export';
-  textExportButton.addEventListener('click', () => {
-    transcriptText.value = JSON.stringify(createTranscriptExport(), null, 2);
-    status.textContent = 'Transcript kiírva a textarea mezőbe.';
-  });
-
-  const fileImportButton = document.createElement('button');
-  fileImportButton.type = 'button';
-  fileImportButton.className = 'button';
-  fileImportButton.textContent = 'Fájl import';
-  fileImportButton.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (!file) {
-      return;
-    }
-
-    void file.text().then((content) => {
-      try {
-        const imported = parseTranscriptExport(JSON.parse(content));
-        loadTranscriptExport(imported);
-        transcriptText.value = content;
-        status.textContent = `Transcript betöltve: ${file.name}`;
-      } catch (error) {
-        status.textContent = error instanceof Error ? error.message : 'Sikertelen import.';
-      } finally {
-        fileInput.value = '';
-      }
-    });
-  });
-
-  const exportButton = document.createElement('button');
-  exportButton.type = 'button';
-  exportButton.className = 'button';
-  exportButton.textContent = 'Fájl export';
-  exportButton.addEventListener('click', () => {
-    const value = createTranscriptExport();
-    downloadJson(`assessment-${value.scenarioId}-transcript.json`, value);
-  });
-
-  const reportButton = document.createElement('button');
-  reportButton.type = 'button';
-  reportButton.className = 'button';
-  reportButton.textContent = 'Debug report export';
-  reportButton.addEventListener('click', () => {
-    const scenarioId = getCurrentScenario().id;
-    downloadJson(`assessment-${scenarioId}-debug.json`, {
-      debugReportVersion: 1,
-      scenarioId,
-      transcript,
-      progressEvaluations: progressHistory,
-    } satisfies DebugReport);
-  });
-
-  actions.append(
-    importButton,
-    textExportButton,
-    fileImportButton,
-    exportButton,
-    reportButton,
-  );
-  panel.append(summary, transcriptText, fileInput, actions, status);
-  scenarioPanel.append(panel);
+function createDebugReport(): DebugReport {
+  return {
+    debugReportVersion: 1,
+    scenarioId: getCurrentScenario().id,
+    transcript,
+    progressEvaluations: progressHistory,
+  };
 }
 
 function handleComposerSubmit(event: SubmitEvent): void {
@@ -691,7 +427,13 @@ function initializeAssessment(): void {
   renderScenario();
   resetConversation();
   bindEventListeners();
-  createDebugPanel();
+  createDebugPanel({
+    enabled: debugMode,
+    parseTranscript: (value) => parseTranscriptExport(value, scenarios),
+    loadTranscript: loadTranscriptExport,
+    createTranscriptExport,
+    createDebugReport,
+  });
 }
 
 initializeAssessment();
