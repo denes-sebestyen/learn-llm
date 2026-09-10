@@ -47,8 +47,11 @@ function logError(context: string, error: unknown): void {
 }
 
 function isDebugRequest(request: Request): boolean {
-  const referer = request.headers.get('referer');
+  if (request.headers.get('x-assessment-debug') !== '1') {
+    return false;
+  }
 
+  const referer = request.headers.get('referer');
   if (!referer) {
     return false;
   }
