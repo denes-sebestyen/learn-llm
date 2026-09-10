@@ -19,9 +19,9 @@
       "modules": [2, 3],
       "focus": ["recognition", "llm_usage_strategy"],
       "evaluator_notes": [
-        "Értékelje, hogy a válasz kér-e vagy megad-e releváns kontextust, célt, közönséget és kívánt formátumot.",
-        "Ne várjon egyetlen mintapromptot; a jó stratégia fontosabb a konkrét megfogalmazásnál.",
-        "Plusz erősség, ha a tanuló iterációt vagy visszakérdezést is természetes lehetőségként kezeli."
+        "Look for whether the learner identifies or supplies information that would materially improve the request for its intended purpose.",
+        "Relevant context depends on the request; do not require a fixed set of fields such as audience, format, role, or constraints.",
+        "Treat clarification, iteration, or asking for missing information as valid strategies when they are useful, rather than requiring a single self-contained ideal prompt."
       ]
     },
     {
@@ -44,9 +44,9 @@
       "modules": [1, 4, 5],
       "focus": ["recognition", "verification_strategy"],
       "evaluator_notes": [
-        "Erős válasz felismeri, hogy a magabiztos stílus és a konkrét hivatkozás önmagában nem bizonyíték.",
-        "Keresse a hivatkozások létezésének és a konkrét állítások forrástámogatásának ellenőrzését.",
-        "Ne követelje meg minden forrás ellenőrzését, ha a tanuló ésszerű, kockázatarányos mintavételt és ellenőrzési stratégiát ír le."
+        "Look for evidence that the learner treats confident wording and specific-looking citations as claims that may still require verification.",
+        "Verification may target source existence, source relevance, or support for important claims. Evaluate whether the chosen checks address the actual uncertainty.",
+        "Do not require exhaustive verification of every citation when the learner demonstrates a reasonable, risk-proportionate verification strategy."
       ]
     },
     {
@@ -69,9 +69,9 @@
       "modules": [5, 6],
       "focus": ["recognition", "verification_strategy", "risk_assessment"],
       "evaluator_notes": [
-        "A tanuló ismerje fel, hogy a nyitvatartás időben változó információ.",
-        "Erős stratégia friss, lehetőleg elsődleges vagy megbízható aktuális forrást használ.",
-        "A kockázatbecslés legyen arányos: egy közeli üzlet és egy hosszú utazás előtt szükséges ellenőrzés nem feltétlenül azonos."
+        "Look for evidence that the learner recognizes the answer may become outdated or may not be grounded in sufficiently current information.",
+        "Evaluate whether verification, when used, is capable of establishing the information for the relevant time, with preference for suitable current and authoritative sources.",
+        "Judge the amount of verification relative to the consequence of being wrong; do not require the same effort for a low-cost local decision and a consequential trip."
       ]
     },
     {
@@ -82,9 +82,9 @@
       "modules": [4, 5, 7],
       "focus": ["risk_assessment", "verification_strategy", "llm_usage_strategy"],
       "evaluator_notes": [
-        "Erős válasz az LLM-et előkészítésre, kérdések összegyűjtésére vagy alternatívák feltárására használhatja, de nem teszi kizárólagos döntéshozóvá.",
-        "Keresse a megfelelő szakember vagy hiteles elsődleges forrás bevonását.",
-        "A válasz ne kapjon automatikusan maximális pontot pusztán attól, hogy azt mondja: kérdezz szakembert; értékelje a teljes stratégiát."
+        "Look for whether the learner assigns the LLM a role appropriate to a decision where an incorrect answer could have serious consequences.",
+        "Evaluate whether the learner uses independent expertise or authoritative evidence when the decision requires it, rather than treating the LLM's confidence or reasoning as sufficient validation.",
+        "Do not award a high score merely for mentioning a professional or external source; evaluate whether the overall strategy appropriately manages the actual risk."
       ]
     },
     {
@@ -95,14 +95,14 @@
       "modules": [3, 8],
       "focus": ["recognition", "llm_usage_strategy"],
       "evaluator_notes": [
-        "Keresse az alternatívák, szempontok, feltételezések, ellenérvek vagy érintettek feltárását.",
-        "Erős válasz használhat premortemet, ellenkező álláspontot, összehasonlítási keretet vagy iterációt.",
-        "Ne részesítsen előnyben egyetlen technikát; a cél a gondolkodás kiszélesítése és strukturálása."
+        "Look for evidence that the learner identifies, prioritizes, questions, or deliberately narrows considerations that matter to their own decision.",
+        "Do not require the learner to explore every consideration or alternative introduced by the assistant. Rejecting irrelevant options, prioritizing a requirement, or narrowing the problem can be productive decision-making behavior.",
+        "For LLM usage strategy, evaluate whether the interaction helps the learner make useful progress. Iteration may broaden or narrow the problem depending on what the learner's goal requires; breadth is not itself a measure of quality."
       ],
       "evaluationPlan": {
         "targetBehaviors": [
-          "A tanuló reagál az LLM első döntéstámogató válaszára vagy visszakérdezésére.",
-          "A reakcióból megfigyelhető, hogy a tanuló hogyan iterál, ad-e új kontextust vagy használja-e az LLM által felvetett szempontokat a döntés továbbgondolására."
+          "The learner responds to the LLM in a way that makes useful progress on the decision rather than merely accepting a choice made by the assistant.",
+          "Across the interaction, look for learner behavior that clarifies, prioritizes, narrows, questions, or adds context when those actions are useful for the learner's goal. Do not require breadth of exploration or treatment of every assistant-proposed consideration."
         ],
         "sufficientWhen": "A tanuló legalább egyszer reagált az LLM saját, a scenario során adott válaszára, és ebből a reakcióból megítélhető az iterációs vagy döntéstámogatási stratégiája. Az első learner üzenet önmagában nem elegendő, még akkor sem, ha már mutat valamit az LLM-használati stratégiájából."
       }
@@ -115,9 +115,9 @@
       "modules": [9, 10],
       "focus": ["recognition", "risk_assessment", "llm_usage_strategy"],
       "evaluator_notes": [
-        "Keresse a szükségtelen adatok eltávolítását vagy anonimizálását, valamint a szolgáltatás adatkezelésének és jogosultságoknak a mérlegelését.",
-        "Erős válasz különbséget tesz a feladathoz szükséges kontextus és a szükségtelen érzékeny adatok között.",
-        "A teljes dokumentum automatikus elutasítása nem feltétlenül jobb, mint egy tudatosan minimalizált, megfelelő szolgáltatásban végzett feldolgozás."
+        "Look for whether the learner recognizes that information in the document may have different sensitivity, ownership, necessity, or permission implications.",
+        "Evaluate whether the learner reduces unnecessary exposure while still preserving the information needed for the task, and considers whether the chosen service is appropriate for the remaining data.",
+        "Do not treat refusal to upload any document as inherently safer or better than proportionate data minimization and use of an appropriate service."
       ]
     }
   ]
