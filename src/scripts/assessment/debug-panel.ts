@@ -73,8 +73,9 @@ export function createDebugPanel(options: DebugPanelOptions): void {
       return;
     }
 
-    void file.text().then((content) => {
+    void (async () => {
       try {
+        const content = await file.text();
         const imported = options.parseTranscript(JSON.parse(content));
         options.loadTranscript(imported);
         transcriptText.value = content;
@@ -84,7 +85,7 @@ export function createDebugPanel(options: DebugPanelOptions): void {
       } finally {
         fileInput.value = '';
       }
-    });
+    })();
   });
 
   const exportButton = document.createElement('button');
