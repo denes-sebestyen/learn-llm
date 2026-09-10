@@ -1,10 +1,10 @@
 import diagnostic from '../../../assessment/diagnostic.json';
 import { buildConversationMessages } from '../prompts/conversation';
+import { buildFinalEvaluationMessages } from '../prompts/evaluation';
 import {
   buildEvaluationTurns,
-  buildFinalEvaluationMessages,
   type EvaluationTurn,
-} from '../prompts/evaluation';
+} from '../prompts/evaluation/turns';
 import { buildProgressEvaluationMessages } from '../prompts/progress';
 import type { ModelProvider, ModelResponse } from '../llm/model-provider';
 import {
