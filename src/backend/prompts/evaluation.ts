@@ -4,10 +4,7 @@ import type { ModelMessage } from '../llm/model-provider';
 import { EVALUATION_SYSTEM_PROMPT } from './evaluation/system-prompt';
 import type { EvaluationTurn } from './evaluation/turns';
 
-export function buildFinalEvaluationMessages(
-  scenario: DiagnosticScenario,
-  turns: EvaluationTurn[],
-): ModelMessage[] {
+function buildScenarioEvaluationInstructions(scenario: DiagnosticScenario): string {
   const focus = scenario.focus ?? [];
   const dimensions = focus.map((dimension) => {
     const { definition, scoringGuidance } = getAssessmentDimension(dimension);
@@ -18,23 +15,37 @@ export function buildFinalEvaluationMessages(
       scoringGuidance,
     };
   });
+  const evaluatorNotes = scenario.evaluator_notes ?? [];
+  const targetBehaviors = scenario.evaluationPlan?.targetBehaviors ?? [];
 
   return [
-    { role: 'system', content: EVALUATION_SYSTEM_PROMPT },
+    'Scenario-specific evaluation instructions:',
+    `Scenario title: ${scenario.title}`,
+    `Scenario task: ${scenario.prompt}`,
+    `Evaluation dimensions: ${JSON.stringify(dimensions)}`,
+    evaluatorNotes.length > 0
+      ? `Evaluator notes: ${JSON.stringify(evaluatorNotes)}`
+      : '',
+    targetBehaviors.length > 0
+      ? `Target behaviors: ${JSON.stringify(targetBehaviors)}`
+      : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
+}
+
+export function buildFinalEvaluationMessages(
+  scenario: DiagnosticScenario,
+  turns: EvaluationTurn[],
+): ModelMessage[] {
+  return [
+    {
+      role: 'system',
+      content: `${EVALUATION_SYSTEM_PROMPT}\n\n${buildScenarioEvaluationInstructions(scenario)}`,
+    },
     {
       role: 'user',
-      content: JSON.stringify({
-        scenario: {
-          title: scenario.title,
-          prompt: scenario.prompt,
-          focus,
-          evaluatorNotes: scenario.evaluator_notes ?? [],
-          evaluationPlan: scenario.evaluationPlan,
-        },
-        dimensions,
-        initialTranscript: scenario.initialTranscript ?? [],
-        turns,
-      }),
+      content: JSON.stringify({ turns }),
     },
   ];
 }
