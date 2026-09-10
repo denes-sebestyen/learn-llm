@@ -521,6 +521,27 @@ function parseTranscriptExport(value: unknown): TranscriptExport {
   };
 }
 
+function createTranscriptExport(): TranscriptExport {
+  return {
+    scenarioId: getCurrentScenario().id,
+    transcript,
+  };
+}
+
+function loadTranscriptExport(imported: TranscriptExport): void {
+  elements.scenarioSelect.value = imported.scenarioId;
+  renderScenario();
+  transcript = imported.transcript;
+  progressHistory = [];
+  isWaitingForAssistant = false;
+  isEvaluating = false;
+  hideThinkingIndicator();
+  hideProgressNotice();
+  elements.evaluationDialog.close();
+  renderTranscript();
+  updateConversationState();
+}
+
 function createDebugPanel(): void {
   if (!new URLSearchParams(window.location.search).has('debug')) {
     return;
@@ -536,9 +557,14 @@ function createDebugPanel(): void {
   const summary = document.createElement('summary');
   summary.textContent = 'Transcript debug';
 
-  const importInput = document.createElement('textarea');
-  importInput.rows = 8;
-  importInput.placeholder = 'Illeszd be a transcript export JSON-t…';
+  const transcriptText = document.createElement('textarea');
+  transcriptText.rows = 8;
+  transcriptText.placeholder = 'Transcript JSON…';
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'application/json,.json';
+  fileInput.hidden = true;
 
   const status = document.createElement('p');
   status.setAttribute('role', 'status');
@@ -549,37 +575,58 @@ function createDebugPanel(): void {
   const importButton = document.createElement('button');
   importButton.type = 'button';
   importButton.className = 'button';
-  importButton.textContent = 'Transcript import';
+  importButton.textContent = 'Textarea import';
   importButton.addEventListener('click', () => {
     try {
-      const imported = parseTranscriptExport(JSON.parse(importInput.value));
-      elements.scenarioSelect.value = imported.scenarioId;
-      renderScenario();
-      transcript = imported.transcript;
-      progressHistory = [];
-      isWaitingForAssistant = false;
-      isEvaluating = false;
-      hideThinkingIndicator();
-      hideProgressNotice();
-      elements.evaluationDialog.close();
-      renderTranscript();
-      updateConversationState();
-      status.textContent = 'Transcript betöltve.';
+      const imported = parseTranscriptExport(JSON.parse(transcriptText.value));
+      loadTranscriptExport(imported);
+      status.textContent = 'Transcript betöltve a textarea tartalmából.';
     } catch (error) {
       status.textContent = error instanceof Error ? error.message : 'Sikertelen import.';
     }
   });
 
-  const transcriptButton = document.createElement('button');
-  transcriptButton.type = 'button';
-  transcriptButton.className = 'button';
-  transcriptButton.textContent = 'Transcript export';
-  transcriptButton.addEventListener('click', () => {
-    const scenarioId = getCurrentScenario().id;
-    downloadJson(`assessment-${scenarioId}-transcript.json`, {
-      scenarioId,
-      transcript,
-    } satisfies TranscriptExport);
+  const textExportButton = document.createElement('button');
+  textExportButton.type = 'button';
+  textExportButton.className = 'button';
+  textExportButton.textContent = 'Textarea export';
+  textExportButton.addEventListener('click', () => {
+    transcriptText.value = JSON.stringify(createTranscriptExport(), null, 2);
+    status.textContent = 'Transcript kiírva a textarea mezőbe.';
+  });
+
+  const fileImportButton = document.createElement('button');
+  fileImportButton.type = 'button';
+  fileImportButton.className = 'button';
+  fileImportButton.textContent = 'Fájl import';
+  fileImportButton.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    void file.text().then((content) => {
+      try {
+        const imported = parseTranscriptExport(JSON.parse(content));
+        loadTranscriptExport(imported);
+        transcriptText.value = content;
+        status.textContent = `Transcript betöltve: ${file.name}`;
+      } catch (error) {
+        status.textContent = error instanceof Error ? error.message : 'Sikertelen import.';
+      } finally {
+        fileInput.value = '';
+      }
+    });
+  });
+
+  const exportButton = document.createElement('button');
+  exportButton.type = 'button';
+  exportButton.className = 'button';
+  exportButton.textContent = 'Fájl export';
+  exportButton.addEventListener('click', () => {
+    const value = createTranscriptExport();
+    downloadJson(`assessment-${value.scenarioId}-transcript.json`, value);
   });
 
   const reportButton = document.createElement('button');
@@ -596,8 +643,14 @@ function createDebugPanel(): void {
     } satisfies DebugReport);
   });
 
-  actions.append(importButton, transcriptButton, reportButton);
-  panel.append(summary, importInput, actions, status);
+  actions.append(
+    importButton,
+    textExportButton,
+    fileImportButton,
+    exportButton,
+    reportButton,
+  );
+  panel.append(summary, transcriptText, fileInput, actions, status);
   scenarioPanel.append(panel);
 }
 
