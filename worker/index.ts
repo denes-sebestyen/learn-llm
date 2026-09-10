@@ -46,6 +46,12 @@ function logError(context: string, error: unknown): void {
   console.error(`${context}: ${String(error)}`);
 }
 
+// This is an opt-in logging switch, not an authorization boundary.
+// The request marker and debug referrer prevent accidental activation during
+// normal browser use, but both are intentionally treated as forgeable input.
+// Debug mode only increases server-side logging; it does not expose logs or
+// grant additional API capabilities to the requester. If debug mode later
+// exposes privileged data or behavior, it must move behind real authorization.
 function isDebugRequest(request: Request): boolean {
   if (request.headers.get('x-assessment-debug') !== '1') {
     return false;
