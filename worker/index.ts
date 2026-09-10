@@ -8,6 +8,11 @@ import {
   CloudflareAIProvider,
   type WorkersAI,
 } from '../src/backend/llm/cloudflare-ai-provider';
+import type {
+  ModelProvider,
+  ModelRequest,
+  ModelResponse,
+} from '../src/backend/llm/model-provider';
 
 type AssetBinding = {
   fetch(request: Request): Promise<Response>;
@@ -39,6 +44,58 @@ function logError(context: string, error: unknown): void {
   }
 
   console.error(`${context}: ${String(error)}`);
+}
+
+function isDebugRequest(request: Request): boolean {
+  const referer = request.headers.get('referer');
+
+  if (!referer) {
+    return false;
+  }
+
+  try {
+    return new URL(referer).searchParams.has('debug');
+  } catch {
+    return false;
+  }
+}
+
+class DebugModelProvider implements ModelProvider {
+  constructor(private readonly provider: ModelProvider) {}
+
+  async generate(request: ModelRequest): Promise<ModelResponse> {
+    console.debug('Assessment debug · model request', request);
+    const response = await this.provider.generate(request);
+    console.debug('Assessment debug · model response', response);
+    return response;
+  }
+}
+
+function createAssessmentService(env: Env, debug: boolean): AssessmentService {
+  const provider = new CloudflareAIProvider(env.AI);
+  return new AssessmentService(debug ? new DebugModelProvider(provider) : provider);
+}
+
+function logDebugRequest(
+  request: Request,
+  body: AssessmentRequest,
+): boolean {
+  const debug = isDebugRequest(request);
+
+  if (debug) {
+    console.debug('Assessment debug · API request', {
+      path: new URL(request.url).pathname,
+      body,
+    });
+  }
+
+  return debug;
+}
+
+function logDebugResponse(debug: boolean, path: string, response: unknown): void {
+  if (debug) {
+    console.debug('Assessment debug · API response', { path, response });
+  }
 }
 
 function isConversationTurn(value: unknown): boolean {
@@ -105,10 +162,12 @@ async function handleAssessmentMessage(
     return parsed.response;
   }
 
+  const debug = logDebugRequest(request, parsed.body);
+
   try {
-    const provider = new CloudflareAIProvider(env.AI);
-    const service = new AssessmentService(provider);
+    const service = createAssessmentService(env, debug);
     const response = await service.continueConversation(parsed.body);
+    logDebugResponse(debug, '/api/assessment/message', response);
 
     return json(response);
   } catch (error) {
@@ -127,10 +186,12 @@ async function handleAssessmentProgress(
     return parsed.response;
   }
 
+  const debug = logDebugRequest(request, parsed.body);
+
   try {
-    const provider = new CloudflareAIProvider(env.AI);
-    const service = new AssessmentService(provider);
+    const service = createAssessmentService(env, debug);
     const response = await service.evaluateProgress(parsed.body);
+    logDebugResponse(debug, '/api/assessment/progress', response);
 
     return json(response);
   } catch (error) {
@@ -149,10 +210,12 @@ async function handleAssessmentEvaluation(
     return parsed.response;
   }
 
+  const debug = logDebugRequest(request, parsed.body);
+
   try {
-    const provider = new CloudflareAIProvider(env.AI);
-    const service = new AssessmentService(provider);
+    const service = createAssessmentService(env, debug);
     const response = await service.evaluate(parsed.body);
+    logDebugResponse(debug, '/api/assessment/evaluate', response);
 
     return json(response);
   } catch (error) {
