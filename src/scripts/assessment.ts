@@ -87,6 +87,7 @@ function readScenarios(): Scenario[] {
 }
 
 const scenarios = readScenarios();
+const debugMode = new URLSearchParams(window.location.search).has('debug');
 
 const elements = {
   scenarioSelect: getElement<HTMLSelectElement>('scenario-select'),
@@ -290,6 +291,7 @@ async function postAssessment<T>(path: string): Promise<T> {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
+      ...(debugMode ? { 'x-assessment-debug': '1' } : {}),
     },
     body: JSON.stringify({
       scenarioId: getCurrentScenario().id,
@@ -543,7 +545,7 @@ function loadTranscriptExport(imported: TranscriptExport): void {
 }
 
 function createDebugPanel(): void {
-  if (!new URLSearchParams(window.location.search).has('debug')) {
+  if (!debugMode) {
     return;
   }
 
