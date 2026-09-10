@@ -151,17 +151,21 @@ A szerepet és a konkrét szempontokat természetesen kombinálhatod is. A lény
 
 ## A „ne hibázz” nem hibakezelési stratégia
 
-Még kevésbé hasznos az olyan utasítás, mint:
+Az interneten gyakran találkozhatsz olyan fordulatokkal is, mint:
 
 > Make no mistakes.
 
-Az LLM eleve nem azért téved, mert úgy döntött, hogy most hibázni fog. A „ne hibázz” nem mondja meg neki, **hogyan ismerje fel vagy csökkentse a tévedés lehetőségét**.
+Ezt nem érdemes mindig szó szerint komoly prompttechnikaként értelmezni: sokszor már mémként vagy tréfaként használják.
+
+A humor éppen abból fakad, hogy a kérés önmagában nem ad a modellnek új módszert a hibák elkerülésére. Az LLM eleve nem azért téved, mert úgy döntött, hogy most hibázni fog. A „ne hibázz” nem mondja meg neki, **hogyan ismerje fel vagy csökkentse a tévedés lehetőségét**.
 
 Sokkal használhatóbb például:
 
 > Ellenőrizd külön a feltételezéseidet. Jelezd, mely állításokban vagy bizonytalan. A verziófüggő információkat ne feltételezd, hanem ellenőrizd friss dokumentációból, ha erre van lehetőséged.
 
-Ez konkrét eljárást kér a puszta kívánság helyett.
+Ez már konkrét eljárást kér a puszta kívánság helyett.
+
+Vagyis ha a cél valóban a hibák esélyének csökkentése, érdemes olyan lépéseket kérni, amelyek segíthetik az ellenőrzést, nem pusztán azt, hogy a válasz legyen hibátlan.
 
 > **Ne varázsigével próbáld jobbá tenni a modellt; adj neki jobb feladatot.**
 
