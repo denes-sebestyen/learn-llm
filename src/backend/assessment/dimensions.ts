@@ -1,11 +1,11 @@
 export const ASSESSMENT_DIMENSIONS = {
   recognition: {
     definition:
-      'The learner notices properties, limitations, uncertainty, assumptions, or warning signs in an LLM interaction that are relevant to deciding how to proceed.',
+      'The learner notices information, properties, limitations, uncertainty, assumptions, or warning signs in an LLM interaction that are relevant to their goal or to deciding how to proceed.',
     progressGuidance:
       'Estimate how much usable evidence the learner transcript provides about what they notice or fail to notice. Do not judge whether their recognition is correct or complete; later contradictory behavior can add evidence rather than invalidate earlier observations.',
     scoringGuidance:
-      'Evaluate whether the learner recognizes the relevant limitations, uncertainty, assumptions, or warning signs and uses that recognition appropriately.',
+      'Evaluate whether the learner identifies information, properties, limitations, uncertainty, assumptions, or warning signs that are relevant to their goal or next decision. Do not require the learner to acknowledge or discuss information that is irrelevant to their goal merely because the LLM mentioned it.',
     minObservability: 0.75,
   },
   risk_assessment: {
@@ -28,11 +28,11 @@ export const ASSESSMENT_DIMENSIONS = {
   },
   llm_usage_strategy: {
     definition:
-      'The learner uses the LLM as part of a process, including providing useful context, iterating on outputs, refining the task, exploring alternatives, and deciding what role the LLM should play.',
+      'The learner uses the LLM deliberately as part of a process, taking useful next steps such as providing context, responding to outputs, refining the task, exploring alternatives, or deciding what role the LLM should play.',
     progressGuidance:
       'Estimate how much usable evidence the learner transcript provides about their way of working with the LLM across the interaction. Ineffective, passive, poorly calibrated, changing, or inconsistent use can still be highly observable; do not treat ambiguity in performance quality as missing evidence.',
     scoringGuidance:
-      'Evaluate whether the learner uses the LLM deliberately and adaptively, provides relevant context, responds to outputs, iterates when useful, and assigns the LLM an appropriate role in the wider task.',
+      'Evaluate whether the learner uses the LLM deliberately and adaptively across the interaction, taking steps such as providing relevant context, responding to outputs, iterating, refining the task, exploring alternatives, or adjusting the LLM\'s role when those steps are useful. Treat these as possible strategies rather than a checklist, and do not require new context or iteration when the conversation does not call for it.',
     minObservability: 0.75,
   },
 } as const;
