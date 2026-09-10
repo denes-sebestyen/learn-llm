@@ -1,15 +1,8 @@
-import type { DiagnosticScenario, ConversationTurn } from '../assessment/types';
+import type { DiagnosticScenario } from '../assessment/types';
 import { getAssessmentDimension } from '../assessment/dimensions';
 import type { ModelMessage } from '../llm/model-provider';
 import { EVALUATION_SYSTEM_PROMPT } from './evaluation/system-prompt';
-import {
-  buildEvaluationTurns,
-  type EvaluationSegment,
-  type EvaluationTurn,
-} from './evaluation/turns';
-
-export type { EvaluationSegment, EvaluationTurn };
-export { buildEvaluationTurns };
+import type { EvaluationTurn } from './evaluation/turns';
 
 export function buildFinalEvaluationMessages(
   scenario: DiagnosticScenario,
