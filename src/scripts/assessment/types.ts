@@ -59,6 +59,19 @@ export type TranscriptExport = {
   transcript: Turn[];
 };
 
+export type AssessmentEvaluationExport = {
+  assessmentExportVersion: 1;
+  exportedAt: string;
+  scenario: {
+    id: string;
+    title: string;
+    prompt: string;
+    modules: number[];
+  };
+  transcript: Turn[];
+  evaluation: AssessmentEvaluationResponse;
+};
+
 export type DebugReport = TranscriptExport & {
   debugReportVersion: 1;
   progressEvaluations: ProgressHistoryEntry[];
