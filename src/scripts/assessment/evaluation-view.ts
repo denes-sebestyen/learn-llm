@@ -13,6 +13,10 @@ const DIMENSION_LABELS: Record<string, string> = {
   llm_usage_strategy: 'LLM-használati stratégia',
 };
 
+function isDebugMode(): boolean {
+  return new URLSearchParams(window.location.search).has('debug');
+}
+
 function readCurrentScenario(): Scenario {
   const scenarioData = document.getElementById('scenario-data');
   const scenarioSelect = document.getElementById('scenario-select') as HTMLSelectElement | null;
@@ -103,5 +107,9 @@ export function renderEvaluation(
     return section;
   });
 
-  container.replaceChildren(...results, createExportButton(evaluation));
+  if (isDebugMode()) {
+    results.push(createExportButton(evaluation));
+  }
+
+  container.replaceChildren(...results);
 }
