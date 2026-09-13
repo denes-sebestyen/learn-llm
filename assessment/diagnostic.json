@@ -3,107 +3,60 @@
   "scale": {
     "min": 0,
     "max": 3,
-    "dimensions": [
-      "recognition",
-      "risk_assessment",
-      "verification_strategy",
-      "llm_usage_strategy"
-    ]
+    "dimensions": ["recognition", "risk_assessment", "verification_strategy", "llm_usage_strategy"]
   },
   "scenarios": [
     {
       "id": "prompt-improvement",
       "title": "Egy túl általános kérés",
       "prompt": "Valaki ezt írja egy LLM-nek: „Írj nekem egy jó önéletrajzot.” Mit változtatnál a kérésen, mielőtt elküldenéd? Írd le vagy fogalmazd át úgy, ahogy szerinted jobb lenne.",
-      "conversationSetup": "A tanuló önéletrajz készítéséhez kér segítséget. Viselkedj általános célú asszisztensként, amelynek feladata az önéletrajz elkészítése. Ha a tényleges elkészítéshez szükséges adatok hiányoznak, természetesen kérdezz vissza róluk. Ne kezeld a beszélgetést promptjavítási feladatként.",
+      "conversationSetup": "The learner is asking for help creating a CV. Act as a general-purpose assistant whose task is to help create the CV. If information genuinely required to create it is missing, ask for it naturally. Treat the exchange as the actual CV task rather than as a prompt-improvement exercise.",
       "modules": [2, 3],
       "focus": ["recognition", "llm_usage_strategy"],
-      "evaluator_notes": [
-        "Look for whether the learner identifies or supplies information that would materially improve the request for its intended purpose.",
-        "Relevant context depends on the request; do not require a fixed set of fields such as audience, format, role, or constraints.",
-        "Treat clarification, iteration, or asking for missing information as valid strategies when they are useful, rather than requiring a single self-contained ideal prompt."
-      ]
+      "evaluator_notes": ["Look for whether the learner identifies or supplies information that would materially improve the request for its intended purpose.", "Relevant context depends on the request; do not require a fixed set of fields such as audience, format, role, or constraints.", "Treat clarification, iteration, or asking for missing information as valid strategies when they are useful, rather than requiring a single self-contained ideal prompt."]
     },
     {
       "id": "suspicious-answer",
       "title": "Meggyőző válasz, bizonytalan alapokon",
       "prompt": "Az alábbi beszélgetésben egy LLM részletes, magabiztos választ adott egy történelmi kérdésre, és több forrást is megnevezett. Folytasd a beszélgetést úgy, ahogy valóban tennéd, mielőtt az információt felhasználnád egy beadandóban.",
-      "conversationSetup": "A tanuló egy történelmi témáról beszélget veled. A beszélgetés elején már adtál neki egy részletes, magabiztos választ, amely szándékosan tartalmaz ellenőrizetlen és kitalált hivatkozásokat. A továbbiakban viselkedj általános célú asszisztensként. Ha a tanuló rákérdez a forrásokra vagy bizonyítékokra, reagálj természetesen, de ne tanítsd kéretlenül általánosságban az LLM-válaszok ellenőrzésére, és ne áruld el, hogy a kezdő válasz tesztcélból hibás.",
+      "conversationSetup": "The learner is discussing a historical topic with you. Earlier in the conversation you gave a detailed, confident answer with several specific references. Continue as a general-purpose assistant and respond naturally to the learner's requests about the topic and those references.",
       "initialTranscript": [
-        {
-          "id": 1,
-          "role": "user",
-          "content": "Milyen szerepe volt a kereskedelemnek a 15. századi Magyar Királyság városainak fejlődésében? Egy beadandóhoz gyűjtök anyagot, ezért forrásokat is adj hozzá."
-        },
-        {
-          "id": 2,
-          "role": "assistant",
-          "content": "A kereskedelem a 15. századi Magyar Királyság városfejlődésének egyik legfontosabb motorja volt. A távolsági kereskedelemhez kapcsolódó vám- és árumegállító jogok erősítették Buda, Pozsony, Kassa és más királyi városok gazdasági helyzetét, miközben a bányavárosok a nemesfémek exportján keresztül kapcsolódtak az európai kereskedelmi hálózatokhoz. A kereskedőréteg megerősödése a városi önkormányzatokra és a céhes kézműiparra is hatott. Jó kiinduló források: Kubinyi András: Városfejlődés és kereskedelem a késő középkori Magyarországon (Budapest, 1998); Szűcs Jenő: Városok és kereskedők Mátyás korában (Budapest, 1986); Engel Pál: The Realm of St Stephen (I.B. Tauris, 2001); valamint Kovács László: Trade Networks of the Hungarian Kingdom in the Fifteenth Century, Central European Historical Review 12/2 (2004), 41–68 és Nagy Éva: Merchants and Urban Growth under Matthias Corvinus, Journal of Medieval Hungarian Studies 7 (2009), 103–127."
-        }
+        {"id": 1, "role": "user", "content": "Milyen szerepe volt a kereskedelemnek a 15. századi Magyar Királyság városainak fejlődésében? Egy beadandóhoz gyűjtök anyagot, ezért forrásokat is adj hozzá."},
+        {"id": 2, "role": "assistant", "content": "A kereskedelem a 15. századi Magyar Királyság városfejlődésének egyik legfontosabb motorja volt. A távolsági kereskedelemhez kapcsolódó vám- és árumegállító jogok erősítették Buda, Pozsony, Kassa és más királyi városok gazdasági helyzetét, miközben a bányavárosok a nemesfémek exportján keresztül kapcsolódtak az európai kereskedelmi hálózatokhoz. A kereskedőréteg megerősödése a városi önkormányzatokra és a céhes kézműiparra is hatott. Jó kiinduló források: Kubinyi András: Városfejlődés és kereskedelem a késő középkori Magyarországon (Budapest, 1998); Szűcs Jenő: Városok és kereskedők Mátyás korában (Budapest, 1986); Engel Pál: The Realm of St Stephen (I.B. Tauris, 2001); valamint Kovács László: Trade Networks of the Hungarian Kingdom in the Fifteenth Century, Central European Historical Review 12/2 (2004), 41–68 és Nagy Éva: Merchants and Urban Growth under Matthias Corvinus, Journal of Medieval Hungarian Studies 7 (2009), 103–127."}
       ],
       "modules": [1, 4, 5],
       "focus": ["recognition", "verification_strategy"],
-      "evaluator_notes": [
-        "Look for evidence that the learner treats confident wording and specific-looking citations as claims that may still require verification.",
-        "Verification may target source existence, source relevance, or support for important claims. Evaluate whether the chosen checks address the actual uncertainty.",
-        "Do not require exhaustive verification of every citation when the learner demonstrates a reasonable, risk-proportionate verification strategy."
-      ]
+      "evaluator_notes": ["Look for evidence that the learner treats confident wording and specific-looking citations as claims that may still require verification.", "Verification may target source existence, source relevance, or support for important claims. Evaluate whether the chosen checks address the actual uncertainty.", "Do not require exhaustive verification of every citation when the learner demonstrates a reasonable, risk-proportionate verification strategy."]
     },
     {
       "id": "current-information",
       "title": "Holnap is igaz?",
       "prompt": "Az alábbi beszélgetésben egy LLM megadta egy üzlet holnapi nyitvatartását. Folytasd a beszélgetést úgy, ahogy valóban tennéd, ha azt szeretnéd eldönteni, hogy elindulhatsz-e erre az információra hagyatkozva.",
-      "conversationSetup": "A tanuló egy konkrét üzlet közeljövőbeli nyitvatartásáról beszélget veled. A beszélgetés elején már magabiztosan megadtál egy holnapi nyitvatartást anélkül, hogy jelezted volna, honnan származik az információ. A továbbiakban viselkedj általános célú asszisztensként. Ne változtasd a beszélgetést az aktuális információk ellenőrzéséről szóló oktatássá, hacsak ezt a tanuló nem kéri.",
-      "initialTranscript": [
-        {
-          "id": 1,
-          "role": "user",
-          "content": "Holnap nyitva lesz a Fő téri Példa Bolt?"
-        },
-        {
-          "id": 2,
-          "role": "assistant",
-          "content": "Igen, holnap nyitva lesz, 9:00 és 20:00 között."
-        }
-      ],
+      "conversationSetup": "The learner is discussing the near-future opening hours of a specific store with you. Earlier in the conversation you gave a confident opening time without identifying where the information came from. Continue as a general-purpose assistant and respond naturally to the learner's requests about the store and its opening hours.",
+      "initialTranscript": [{"id": 1, "role": "user", "content": "Holnap nyitva lesz a Fő téri Példa Bolt?"}, {"id": 2, "role": "assistant", "content": "Igen, holnap nyitva lesz, 9:00 és 20:00 között."}],
       "modules": [5, 6],
       "focus": ["recognition", "verification_strategy", "risk_assessment"],
-      "evaluator_notes": [
-        "Look for evidence that the learner recognizes the answer may become outdated or may not be grounded in sufficiently current information.",
-        "Evaluate whether verification, when used, is capable of establishing the information for the relevant time, with preference for suitable current and authoritative sources.",
-        "Judge the amount of verification relative to the consequence of being wrong; do not require the same effort for a low-cost local decision and a consequential trip."
-      ]
+      "evaluator_notes": ["Look for evidence that the learner recognizes the answer may become outdated or may not be grounded in sufficiently current information.", "Evaluate whether verification, when used, is capable of establishing the information for the relevant time, with preference for suitable current and authoritative sources.", "Judge the amount of verification relative to the consequence of being wrong; do not require the same effort for a low-cost local decision and a consequential trip."]
     },
     {
       "id": "high-stakes-decision",
       "title": "Határozott tanács nagy következménnyel",
       "prompt": "Egy LLM egy egészségügyi vagy pénzügyi kérdésedre nagyon határozott ajánlást ad, és részletesen meg is indokolja. A döntésnek komoly következménye lehet. Hogyan használnád ezt a választ?",
-      "conversationSetup": "A tanuló nagy következményű egészségügyi vagy pénzügyi kérdésben kér segítséget. Viselkedj általános célú asszisztensként, válaszolj a konkrét kérésre a megfelelő óvatossággal, de ne alakítsd át a beszélgetést az LLM-ek biztonságos használatáról szóló oktatássá.",
+      "conversationSetup": "The learner is asking for help with a consequential health or financial question. Act as a general-purpose assistant, answer the concrete request with the caution appropriate to the subject, and keep the conversation focused on the learner's actual question.",
       "modules": [4, 5, 7],
       "focus": ["risk_assessment", "verification_strategy", "llm_usage_strategy"],
-      "evaluator_notes": [
-        "Look for whether the learner assigns the LLM a role appropriate to a decision where an incorrect answer could have serious consequences.",
-        "Evaluate whether the learner uses independent expertise or authoritative evidence when the decision requires it, rather than treating the LLM's confidence or reasoning as sufficient validation.",
-        "Do not award a high score merely for mentioning a professional or external source; evaluate whether the overall strategy appropriately manages the actual risk."
-      ]
+      "evaluator_notes": ["Look for whether the learner assigns the LLM a role appropriate to a decision where an incorrect answer could have serious consequences.", "Evaluate whether the learner uses independent expertise or authoritative evidence when the decision requires it, rather than treating the LLM's confidence or reasoning as sufficient validation.", "Do not award a high score merely for mentioning a professional or external source; evaluate whether the overall strategy appropriately manages the actual risk."]
     },
     {
       "id": "thinking-partner",
       "title": "Nem csak választ kérünk",
       "prompt": "Két reális lehetőség között kell döntened, és egyik sem egyértelműen jobb. Hogyan használnál egy LLM-et úgy, hogy segítsen átgondolni a döntést anélkül, hogy egyszerűen rábíznád a választást?",
-      "conversationSetup": "A tanuló két reális lehetőség közötti döntéshez kér segítséget. Viselkedj általános célú asszisztensként és segíts a konkrét döntési helyzetben a tanuló kérésének megfelelően. Ne taníts kéretlenül általános LLM-használati vagy döntéstámogatási technikákat.",
+      "conversationSetup": "The learner is asking for help deciding between two realistic options. Act as a general-purpose assistant and help with the concrete decision according to the learner's requests.",
       "modules": [3, 8],
       "focus": ["recognition", "llm_usage_strategy"],
-      "evaluator_notes": [
-        "Look for evidence that the learner identifies, prioritizes, questions, or deliberately narrows considerations that matter to their own decision.",
-        "Do not require the learner to explore every consideration or alternative introduced by the assistant. Rejecting irrelevant options, prioritizing a requirement, or narrowing the problem can be productive decision-making behavior.",
-        "For LLM usage strategy, evaluate whether the interaction helps the learner make useful progress. Iteration may broaden or narrow the problem depending on what the learner's goal requires; breadth is not itself a measure of quality."
-      ],
+      "evaluator_notes": ["Look for evidence that the learner identifies, prioritizes, questions, or deliberately narrows considerations that matter to their own decision.", "Do not require the learner to explore every consideration or alternative introduced by the assistant. Rejecting irrelevant options, prioritizing a requirement, or narrowing the problem can be productive decision-making behavior.", "For LLM usage strategy, evaluate whether the interaction helps the learner make useful progress. Iteration may broaden or narrow the problem depending on what the learner's goal requires; breadth is not itself a measure of quality."],
       "evaluationPlan": {
-        "targetBehaviors": [
-          "The learner responds to the LLM in a way that makes useful progress on the decision rather than merely accepting a choice made by the assistant.",
-          "Across the interaction, look for learner behavior that clarifies, prioritizes, narrows, questions, or adds context when those actions are useful for the learner's goal. Do not require breadth of exploration or treatment of every assistant-proposed consideration."
-        ],
+        "targetBehaviors": ["The learner responds to the LLM in a way that makes useful progress on the decision rather than merely accepting a choice made by the assistant.", "Across the interaction, look for learner behavior that clarifies, prioritizes, narrows, questions, or adds context when those actions are useful for the learner's goal. Do not require breadth of exploration or treatment of every assistant-proposed consideration."],
         "sufficientWhen": "A tanuló legalább egyszer reagált az LLM saját, a scenario során adott válaszára, és ebből a reakcióból megítélhető az iterációs vagy döntéstámogatási stratégiája. Az első learner üzenet önmagában nem elegendő, még akkor sem, ha már mutat valamit az LLM-használati stratégiájából."
       }
     },
@@ -111,14 +64,10 @@
       "id": "sensitive-document",
       "title": "Feltöltenéd ezt a dokumentumot?",
       "prompt": "Van egy hosszú dokumentumod, amelyet szeretnél egy LLM-mel összefoglalni. A dokumentumban nevek, elérhetőségek és néhány olyan adat is szerepel, amely más emberekre vagy a munkahelyedre tartozik. Mit ellenőrzöl vagy teszel, mielőtt feltöltöd?",
-      "conversationSetup": "A tanuló egy dokumentum összefoglalásához kér segítséget. Viselkedj általános célú asszisztensként, és a dokumentummal kapcsolatos konkrét kérést kezeld természetesen. Ne alakítsd át kéretlenül a beszélgetést adatvédelmi vagy LLM-használati oktatássá.",
+      "conversationSetup": "The learner is asking for help summarizing a document. Act as a general-purpose assistant and handle the learner's concrete requests about the document naturally.",
       "modules": [9, 10],
       "focus": ["recognition", "risk_assessment", "llm_usage_strategy"],
-      "evaluator_notes": [
-        "Look for whether the learner recognizes that information in the document may have different sensitivity, ownership, necessity, or permission implications.",
-        "Evaluate whether the learner reduces unnecessary exposure while still preserving the information needed for the task, and considers whether the chosen service is appropriate for the remaining data.",
-        "Do not treat refusal to upload any document as inherently safer or better than proportionate data minimization and use of an appropriate service."
-      ]
+      "evaluator_notes": ["Look for whether the learner recognizes that information in the document may have different sensitivity, ownership, necessity, or permission implications.", "Evaluate whether the learner reduces unnecessary exposure while still preserving the information needed for the task, and considers whether the chosen service is appropriate for the remaining data.", "Do not treat refusal to upload any document as inherently safer or better than proportionate data minimization and use of an appropriate service."]
     }
   ]
 }
