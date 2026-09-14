@@ -4,7 +4,7 @@ import type {
   Scenario,
   Turn,
 } from './types';
-import { downloadJson } from './transcript';
+import { downloadJson, exportFilename } from './transcript';
 
 const DIMENSION_LABELS: Record<string, string> = {
   recognition: 'Felismerés',
@@ -74,7 +74,7 @@ function createExportButton(
   button.textContent = 'Értékelés exportálása';
   button.addEventListener('click', () => {
     const value = createEvaluationExport(evaluation);
-    downloadJson(`assessment-${value.scenario.id}-evaluation.json`, value);
+    downloadJson(exportFilename(`assessment-${value.scenario.id}-evaluation`), value);
   });
 
   return button;
