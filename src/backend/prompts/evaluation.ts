@@ -4,6 +4,8 @@ import type { ModelMessage } from '../llm/model-provider';
 import { EVALUATION_SYSTEM_PROMPT } from './evaluation/system-prompt';
 import type { EvaluationTurn } from './evaluation/turns';
 
+const OUTPUT_STYLE = `Write learner-facing reasons and evidence comments in the conversation's language. Address the learner directly in natural second person. Do not use internal role labels such as "learner" in learner-facing text. Keep the feedback factual and evaluative, not congratulatory, motivational, or coaching-oriented. Do not add unsolicited next-step advice.`;
+
 function buildScenarioEvaluationInstructions(scenario: DiagnosticScenario): string {
   const focus = scenario.focus ?? [];
   const dimensions = focus.map((dimension) => {
@@ -41,7 +43,7 @@ export function buildFinalEvaluationMessages(
   return [
     {
       role: 'system',
-      content: `${EVALUATION_SYSTEM_PROMPT}\n\n${buildScenarioEvaluationInstructions(scenario)}`,
+      content: `${EVALUATION_SYSTEM_PROMPT}\n\n${OUTPUT_STYLE}\n\n${buildScenarioEvaluationInstructions(scenario)}`,
     },
     {
       role: 'user',
