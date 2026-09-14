@@ -41,6 +41,24 @@ export function parseTranscriptExport(
   };
 }
 
+function exportTimestamp(date = new Date()): string {
+  const pad = (value: number) => String(value).padStart(2, '0');
+
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+  ].join('-') + '_' + [
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+    pad(date.getSeconds()),
+  ].join('-');
+}
+
+export function exportFilename(baseName: string, date = new Date()): string {
+  return `${baseName}-${exportTimestamp(date)}.json`;
+}
+
 export function downloadJson(filename: string, value: unknown): void {
   const blob = new Blob([JSON.stringify(value, null, 2)], {
     type: 'application/json',
