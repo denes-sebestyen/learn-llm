@@ -1,5 +1,5 @@
 import type { DebugReport, TranscriptExport } from './types';
-import { downloadJson } from './transcript';
+import { downloadJson, exportFilename } from './transcript';
 
 type DebugPanelOptions = {
   enabled: boolean;
@@ -94,7 +94,7 @@ export function createDebugPanel(options: DebugPanelOptions): void {
   exportButton.textContent = 'Fájl export';
   exportButton.addEventListener('click', () => {
     const value = options.createTranscriptExport();
-    downloadJson(`assessment-${value.scenarioId}-transcript.json`, value);
+    downloadJson(exportFilename(`assessment-${value.scenarioId}-transcript`), value);
   });
 
   const reportButton = document.createElement('button');
@@ -103,7 +103,7 @@ export function createDebugPanel(options: DebugPanelOptions): void {
   reportButton.textContent = 'Debug report export';
   reportButton.addEventListener('click', () => {
     const report = options.createDebugReport();
-    downloadJson(`assessment-${report.scenarioId}-debug.json`, report);
+    downloadJson(exportFilename(`assessment-${report.scenarioId}-debug`), report);
   });
 
   actions.append(
