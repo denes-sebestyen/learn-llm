@@ -4,3 +4,6 @@ dist/
 
 # Generated from the repository's Markdown source files by scripts/sync-content.mjs
 src/content/docs/
+
+# Generated evaluator regression reports
+assessment/regression/results/

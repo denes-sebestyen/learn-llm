@@ -10,7 +10,8 @@
     "sync-content": "node scripts/sync-content.mjs",
     "dev": "npm run sync-content && astro dev",
     "build": "npm run sync-content && astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "assessment:regression": "node scripts/assessment-regression.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.41.0",
