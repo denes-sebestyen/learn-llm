@@ -1,0 +1,8 @@
+{
+  "scenarioId": "prompt-improvement",
+  "transcript": [
+    {"id": 1, "role": "user", "content": "Írj nekem egy jó önéletrajzot. Buszvezetőnek jelentkeznék, jelenleg B kategóriás jogosítvánnyal rendelkezem, de a munkáltató fizeti a szükséges továbbképzést, és nagyon lelkes vagyok a tömegközlekedés iránt."},
+    {"id": 2, "role": "assistant", "content": "Rendben. Ahhoz, hogy célzott önéletrajzot készítsek, írd meg kérlek a legmagasabb iskolai végzettségedet, valamint hogy van-e vezetési vagy közlekedési területen szerzett munkatapasztalatod."},
+    {"id": 3, "role": "user", "content": "Érettségivel rendelkezem, jelenleg taxisofőrként dolgozom, de a mostani feltételek mellett inkább váltanék."}
+  ]
+}
